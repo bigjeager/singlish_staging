@@ -1,5 +1,5 @@
-import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-9783eec';
-import { track } from './track.js?v=staging-9783eec';
+import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-1b6b118';
+import { track } from './track.js?v=staging-1b6b118';
 
 const KEY = 'stw.auth.session';
 const LIMIT = 10;
@@ -182,6 +182,10 @@ let state = 'idle';
 let queue = [], pos = 0;
 let right = 0, wrong = 0, relearn = 0, skipped = 0;
 const processed = new Set();
+const missed = new Set();
+const cleared = new Set();
+const served = new Set();
+let allRight = 0, allWrong = 0, allRelearn = 0, allSkipped = 0;
 let groups = 0;
 const MAX_GROUPS = 2;
 let dueCount = 0;
@@ -199,7 +203,7 @@ let advanceTimer = 0;
 
 let learnMod = null;
 async function learn() {
-  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-9783eec'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
+  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-1b6b118'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
   return learnMod;
 }
 
@@ -237,6 +241,8 @@ export async function startReview() {
   queue = buildReviewQueue(uid, learned, LIMIT, groups);
   dueCount = learned.length;
   pos = 0; right = 0; wrong = 0; relearn = 0; skipped = 0; processed.clear();
+  missed.clear(); cleared.clear(); served.clear();
+  allRight = 0; allWrong = 0; allRelearn = 0; allSkipped = 0;
   quizWord = null; answered = false; quizOptions = []; quizWords = []; quizCorrect = -1;
   setMode('review');
   if (!go(0)) { exitReview(); return; }
@@ -249,15 +255,33 @@ function progress() {
   window.dispatchEvent(new CustomEvent('stw:review-progress', { detail: { done: right + wrong + relearn + skipped, total: queue.length } }));
 }
 
-function advance() {
+function bankRound() {
+  for (const w of queue) served.add(w);
+  allRight += right; allWrong += wrong; allRelearn += relearn; allSkipped += skipped;
+}
+
+async function advance() {
   quizWord = null; answered = false; quizOptions = []; quizWords = []; quizCorrect = -1;
   pos++;
   if (pos < queue.length) { go(pos); return; }
+  bankRound();
+  if (missed.size && groups < MAX_GROUPS) {
+    groups++;
+    queue = buildReviewQueue(userId, [...missed], LIMIT, groups);
+    pos = 0; right = 0; wrong = 0; relearn = 0; skipped = 0; processed.clear();
+    quizWord = null; answered = false; quizOptions = []; quizWords = []; quizCorrect = -1;
+    state = 'reviewing';
+    progress();
+    if (!go(0)) { exitReview(); return; }
+    track('review-extra', { total: queue.length, auto: true });
+    return;
+  }
   state = 'summary';
-  const remaining = Math.max(0, dueCount - right);
-
-  window.dispatchEvent(new CustomEvent('stw:review-summary', { detail: { right, wrong, relearn, skipped, total: queue.length, remaining, round: groups, maxRound: MAX_GROUPS } }));
-  track('review-done', { right, wrong, relearn, skipped, total: queue.length, remaining });
+  let due = 0;
+  try { const rows = await reviewableWords(userId); if (Array.isArray(rows)) due = rows.length; } catch {}
+  const remaining = Math.max(due, dueCount - cleared.size, 0);
+  window.dispatchEvent(new CustomEvent('stw:review-summary', { detail: { right: allRight, wrong: allWrong, relearn: allRelearn, skipped: allSkipped, total: served.size, remaining, round: groups, maxRound: MAX_GROUPS } }));
+  track('review-done', { right: allRight, wrong: allWrong, relearn: allRelearn, skipped: allSkipped, total: served.size, remaining });
 }
 
 function askWord(w) {
@@ -290,13 +314,13 @@ function onQuizAnswer(e) {
   if (!Number.isInteger(chosen) || chosen < 0 || chosen >= quizOptions.length) { console.warn('review: quiz answer ignored — bad index', e.detail?.index); return; }
   answered = true;
   const correct = chosen === quizCorrect;
-  if (correct) right++; else wrong++;
+  if (correct) { right++; missed.delete(quizWord); cleared.add(quizWord); } else { wrong++; missed.add(quizWord); cleared.delete(quizWord); }
   processed.add(quizWord);
   progress();
 
   const box = correct ? Math.min((boxMap.get(quizWord) ?? 1) + 1, 7) : 1;
   const nextDue = correct ? addDays(today(), LADDER[box - 1]) : today();
-  if (correct) boxMap.set(quizWord, box);
+  boxMap.set(quizWord, box);
   saveReviewState(userId, quizWord, correct, box, nextDue)?.catch?.(() => {});
   window.dispatchEvent(new CustomEvent('stw:quiz-result', { detail: { chosenIndex: chosen, correctIndex: quizCorrect, correct, optWords: quizWords } }));
   const qn = document.getElementById('quizNext');
@@ -350,6 +374,7 @@ function revealNext() {
   const meaning = w ? poolMap.get(w) : null;
   window.dispatchEvent(new CustomEvent('stw:stop'));
   if (!meaning) { advance(); return; }
+  missed.add(w);
   quizWord = w;
   window.dispatchEvent(new CustomEvent('stw:review-reveal', { detail: { word: w, meaning } }));
   clearTimeout(advanceTimer);
@@ -363,6 +388,7 @@ function revealNext() {
 export async function extraReview() {
   if (state !== 'summary') { console.warn('review: extraReview ignored — no finished group to restart from'); return; }
   if (groups >= MAX_GROUPS) { console.warn('review: extraReview ignored — max redo rounds reached'); exitReview(); return; }
+  bankRound();
   groups++;
   const due = await reviewableWords(userId);
   queue = buildReviewQueue(userId, due, LIMIT, groups);
@@ -382,6 +408,8 @@ export function exitReview() {
   if (quizWord) window.dispatchEvent(new CustomEvent('stw:quiz-close'));
   replayWord = null;
   state = 'idle'; queue = []; pos = 0; right = 0; wrong = 0; relearn = 0; skipped = 0; groups = 0; dueCount = 0; processed.clear();
+  missed.clear(); cleared.clear(); served.clear();
+  allRight = 0; allWrong = 0; allRelearn = 0; allSkipped = 0;
   quizWord = null; answered = false; quizOptions = []; quizWords = []; quizCorrect = -1; studying = false;
   clearTimeout(advanceTimer); advanceTimer = 0;
   setMode(null);

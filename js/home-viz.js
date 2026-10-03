@@ -1,4 +1,4 @@
-import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-9783eec';
+import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-1b6b118';
 
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
@@ -85,10 +85,13 @@ function renderRing(plan, prog) {
     learned = set ? userWords.filter(r => r?.learned_at && set.has(r.word)).length : 0;
   }
   const label = `${DICT_NAME[dict] || '全库'}词库`;
+  // 字典名与学习卡计划行重复（2026-10-04 去重）：有计划（ring 计的就是该词典）时整行不占位，
+  // 仅无计划态（ring 退全库口径）保留「全库词库」说明计数范围
+  const setCap = () => { if (cap) { cap.textContent = label; cap.hidden = !!plan?.dict; } };
   if (!total || (!fromProg && !trial && trialMeta.count > 0 && total === trialMeta.count)) {
     pctEl.textContent = '--';
     if (sub) sub.textContent = '词库加载中';
-    if (cap) cap.textContent = label;
+    setCap();
     if (retryLeft-- > 0) retryT = setTimeout(() => lastArgs && renderViz(...lastArgs), 800);
     return;
   }
@@ -99,7 +102,7 @@ function renderRing(plan, prog) {
   bar.style.strokeDashoffset = (c * (1 - (tiny ? 0.02 : pct))).toFixed(1);
   pctEl.textContent = tiny ? (pct * 100).toFixed(1) + '%' : Math.round(pct * 100) + '%';
   if (sub) sub.textContent = `已学 ${learned} / 共 ${total} 词`;
-  if (cap) cap.textContent = label;
+  setCap();
 }
 
 function renderMonths(start, todayCol) {

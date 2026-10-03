@@ -1,11 +1,11 @@
-import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-9783eec';
-import { store, isMobile } from './util.js?v=staging-9783eec';
-import { track } from './track.js?v=staging-9783eec';
-import { loadLyrics } from './lyrics.js?v=staging-9783eec';
-import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-9783eec';
-import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-9783eec';
-import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-9783eec';
-import { openShare } from './share.js?v=staging-9783eec';
+import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-1b6b118';
+import { store, isMobile } from './util.js?v=staging-1b6b118';
+import { track } from './track.js?v=staging-1b6b118';
+import { loadLyrics } from './lyrics.js?v=staging-1b6b118';
+import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-1b6b118';
+import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-1b6b118';
+import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-1b6b118';
+import { openShare } from './share.js?v=staging-1b6b118';
 
 function $(s) { return document.querySelector(s); }
 
@@ -354,9 +354,10 @@ window.addEventListener('stw:review-summary', e => {
   const lastRound = Number(d.round) >= Number(d.maxRound);
   const solo = !left || lastRound;
   $('#reviewExtraBtn').hidden = solo;
-  $('#reviewExtraBtn').textContent = left ? `把错题重答一下 · 还剩 ${left} 词` : '把错题重答一下';
+  $('#reviewExtraBtn').textContent = left ? `继续复习 · 还剩 ${left} 词` : '继续复习';
   $('#reviewSummaryNone').hidden = !solo;
-  if (lastRound) $('#reviewSummaryNone').textContent = '今天先到这里，明天再来一遍';
+  if (!left) $('#reviewSummaryNone').textContent = '今天全部复习完了';
+  else if (lastRound) $('#reviewSummaryNone').textContent = '今天先到这里，明天再来一遍';
   $('#reviewExitBtn').className = solo ? 'auth-btn' : 'auth-alt';
   $('#reviewSummaryModal').hidden = false;
 });

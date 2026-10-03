@@ -1,7 +1,8 @@
 /* home: 首页任务流视图（docs/home-page.md §0/§2）——与 .browser 面板同机制的全屏视图：
    默认 display:none，.open 显示。z-index 45：高于内容（header 20 / 固定播放器 30 / 词表面板 40）、
    低于弹层（.auth 56 / .sheet 60；.survey 55 已随完整版问卷于 2026-09-30 移除），首访闸门 .start(50) 仍压在本页之上。
-   视觉全走现有卡片家族：--glass 底、--stroke 描边、18–22px 圆角、渐变按钮与 .learn-prog 渐变进度条；
+   视觉全走现有卡片家族：--glass 底、--stroke 描边、18–22px 圆角、渐变按钮；进度条已退役
+   （2026-10-04 用户裁决：通栏渐变条割裂卡面，数字即进度）；
    不用 emoji（用户 2026-09-28 定调，docs/learn-mode.md §3），要图标时才上内联 Phosphor SVG（本页纯文字够用）。 */
 
 /* ---------- 视图开关与窄栏 ---------- */
@@ -20,7 +21,7 @@
 .home-logo b span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .home-auth:empty{display:none}   /* home.js 未放登录入口时，留白即无形 */
 
-/* ---------- 问候行 + streak 行 ---------- */
+/* ---------- 问候行 + streak 行（2026-10-04 恢复：连续打卡口径，与热力卡累计口径并存） ---------- */
 .home-hello{margin:0;font:800 26px/1.2 var(--f-display);letter-spacing:-.02em}
 .home-streak{margin:7px 0 0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 
@@ -29,9 +30,13 @@
 .home-card{display:flex;flex-direction:column;gap:10px;padding:16px 16px 14px;background:var(--glass);
   border:1px solid var(--stroke);border-radius:20px}
 .home-card-label{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
-/* 学习卡今日口径行：配方同 .learn-status（css/profile.css:48） */
-.home-learn-num{margin:0;font-size:14px;font-weight:700;color:var(--soft);font-variant-numeric:tabular-nums}
-/* 学习卡进度条：.learn-prog（css/profile.css:49-50）直用，#homeLearnProg 是其中的渐变 i，宽度由 home.js 写 */
+/* 学习卡今日口径行（2026-10-04 文字层级调整）：与复习卡主数字同配方升格——p 本体是 13px 弱化底
+   （「今日」前缀 /「词 · 已打卡」后缀落在这一层，无数字态的整句文案也走这层），
+   b 大数字 800 display + tabular，双卡数字同权，今日任务一眼可扫 */
+.home-learn-num{margin:2px 0 0;display:flex;align-items:baseline;gap:8px;font-size:13px;
+  color:var(--muted);font-variant-numeric:tabular-nums}
+.home-learn-num b{font:800 clamp(30px,9vw,38px)/1 var(--f-display);letter-spacing:-.03em;
+  color:var(--ink);font-variant-numeric:tabular-nums}
 /* 复习卡大数字：--f-display 展示字（规格 §2"复习卡主数字"），后缀小字收在基线上 */
 .home-review-num{margin:2px 0 0;display:flex;align-items:baseline;gap:8px}
 .home-review-num b{font:800 clamp(30px,9vw,38px)/1 var(--f-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
@@ -39,8 +44,10 @@
 /* ---------- W1（2026-09-30 工单）：复习卡 0 待巩固时的次级预览 ----------
    P3 SRS 把新词 next_due 播到明天，当天刚学的词按设计不在复习池——复习卡只显示「0」会被读成
    「我没学到东西」。本行在 0 池时补一句「今日新增 N · 明日可复习」，把"学过了 + 何时能复习"讲清楚。
-   明度取 --muted（比大数字弱、比占位 --dim 强），12.5px 收在卡片里不抢主数字；hidden 由 home.js 切 */
-.home-review-new{margin:0;font-size:12.5px;line-height:1.4;color:var(--muted);font-variant-numeric:tabular-nums}
+   明度取 --muted（比大数字弱、比占位 --dim 强），12.5px 收在卡片里不抢主数字；hidden 由 home.js 切。
+   margin-top:auto 与按钮（同为 margin-top:auto，二者按池量互斥出现）一样锚卡底：桌面双卡
+   等高拉伸时注脚沉底，content 不再悬顶、卡底不留死空（2026-10-04 布局工单） */
+.home-review-new{margin:auto 0 0;font-size:12.5px;line-height:1.4;color:var(--muted);font-variant-numeric:tabular-nums}
 /* ---------- U7（2026-09-30）：复习 0 词到期时点复习卡的反馈 ----------
    首页不跳走：副行改「明日 N 词待复习」并高亮——卡片描边琥珀色脉冲两拍（1.8s，js/home.js
    nudgeReviewCard 加 .is-nudge，2.2s 后移除），副行文字同步转 --amber 加粗；文案更新保留 */
@@ -138,7 +145,7 @@
 .hm-head-r{display:inline-flex;align-items:center;gap:10px}
 .hm-checkins{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .hm-checkins b{color:var(--ink);font-weight:800;padding:0 1px}
-.hm-hint{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.hm-hint{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .hm-chev{color:var(--muted);transition:transform .3s cubic-bezier(.3,.7,.3,1)}
 .hm.is-open .hm-chev{transform:rotate(180deg)}
 /* 抽屉：grid-template-rows 0fr/1fr 过渡收高；可见性带延迟——展开即见、收起动画播完再藏（Tab 焦点不漏进收起的抽屉） */

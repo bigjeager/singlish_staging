@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-9783eec">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-9783eec">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-9783eec">
-  <link rel="stylesheet" href="./css/home.css?v=staging-9783eec">
+<link rel="stylesheet" href="./css/base.css?v=staging-1b6b118">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-1b6b118">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-1b6b118">
+  <link rel="stylesheet" href="./css/home.css?v=staging-1b6b118">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -125,12 +125,13 @@
       <span class="home-auth" id="homeAuth"></span>
     </header>
 
-    <!-- 问候行（按时段 + 日期）与 streak 行：home.js 填文案，纯文字无 emoji -->
+    <!-- 问候行：home.js 填纯时段问候（日期 2026-10-04 文字减负删除，系统状态栏自会显示）；
+         streak 行恢复（2026-10-04 用户定调：连续打卡与热力卡的累计打卡是两个口径，并存不重复） -->
     <p class="home-hello" id="homeGreet"></p>
     <p class="home-streak" id="homeStreak"></p>
 
-    <!-- 双主卡：等宽两列、≤599px 纵向堆叠（css/home.css）；学习卡带今日进度条，
-         .learn-prog 直接复用 css/profile.css 的渐变配方，#homeLearnProg 是其中的渐变 i。
+    <!-- 双主卡：等宽两列、≤599px 纵向堆叠（css/home.css）；进度条已退役（2026-10-04 用户裁决：
+         通栏渐变条割裂卡面，数字即进度），完成态走「词 · 已打卡」后缀。
          按钮权重（2026-09-29 定调反转：待办的高于已完成的）：渐变主钮 is-grad 摆在复习卡的
          [开始复习] 上，学习卡 [再学 N 词]（已达标态）用描边弱钮——静态摆放，js 不切。
          学习计划并入学习卡（2026-10-02 用户需求：两处割裂）——发丝线分隔的脚注行
@@ -139,8 +140,10 @@
     <div class="home-cards">
       <div class="home-card" id="homeLearnCard">
         <span class="home-card-label">学习</span>
-        <p class="home-learn-num" id="homeLearnStatus">今日 -- 词</p>
-        <div class="learn-prog"><i id="homeLearnProg"></i></div>
+        <!-- 今日口径行（2026-10-04 文字层级调整）：主数字升格为与复习卡同配方的大数字，
+             「今日」「词 · 已打卡」收成前后 13px 弱化缀；js/home.js 往 #homeLearnStatus 里
+             replaceChildren 三件套，无数字态（trial/无计划/加载中）整行回落为一句 13px 文案 -->
+        <p class="home-learn-num" id="homeLearnStatus"><span>今日</span><b>--</b><span>词</span></p>
         <!-- W3（2026-09-30 工单）：超额副行——done > goal 时「已超额 N 词」，主数字已封顶到 goal/goal；
              hidden 由 home.js 切，无超额时整行不占位（零位移） -->
         <p class="home-learn-over" id="homeLearnOver" hidden></p>
@@ -443,7 +446,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-9783eec"></script>
+<script type="module" src="./js/main.js?v=staging-1b6b118"></script>
 
 
 

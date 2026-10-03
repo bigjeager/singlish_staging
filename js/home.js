@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-9783eec';
-import { trial, bankReady } from './bank.js?v=staging-9783eec';
-import { track } from './track.js?v=staging-9783eec';
-import { renderViz } from './home-viz.js?v=staging-9783eec';
+import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-1b6b118';
+import { trial, bankReady } from './bank.js?v=staging-1b6b118';
+import { track } from './track.js?v=staging-1b6b118';
+import { renderViz } from './home-viz.js?v=staging-1b6b118';
 
 const KEY = 'stw.auth.session';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
@@ -14,7 +14,9 @@ function today() {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-export function streak(rows, todayStr) {
+// 连续打卡天数（从 yesterday 起回溯，当天未打不断链）——与热力卡的「累计打卡」是两个口径
+// （2026-10-04 用户定调恢复 streak 行：连续 ≠ 累计）
+function streak(rows, todayStr) {
   const days = new Set();
   for (const r of Array.isArray(rows) ? rows : []) if (r && r.day != null) days.add(String(r.day));
 
@@ -110,11 +112,11 @@ async function render() {
 function renderGreet() {
   const g = el('homeGreet');
   if (!g) return;
-  const d = new Date(), h = d.getHours();
-  const hi = h < 5 ? '晚上好' : h < 11 ? '早上好' : h < 18 ? '下午好' : '晚上好';
-  g.textContent = `${hi} · ${d.getMonth() + 1}月${d.getDate()}日`;
+  const h = new Date().getHours();
+  g.textContent = h < 5 ? '晚上好' : h < 11 ? '早上好' : h < 18 ? '下午好' : '晚上好';
 }
 
+// streak 行（2026-10-04 用户定调恢复）：问候语下的「已连续打卡 N 天」——与热力卡「累计打卡」两口径并存
 function renderStreak(rows, on) {
   const s = el('homeStreak');
   if (!s) return;
@@ -124,32 +126,25 @@ function renderStreak(rows, on) {
 }
 
 function renderLearnCard(userRows, checkinRows) {
-  const status = el('homeLearnStatus'), bar = el('homeLearnProg'), btn = el('homeLearnBtn');
-  const progRow = bar?.parentElement;
-  if (!status && !bar && !btn) return;
+  const status = el('homeLearnStatus'), btn = el('homeLearnBtn');
+  if (!status && !btn) return;
   if (trial) {
     let returned = false;
     try { returned = localStorage.getItem('stw.returned') === '1'; } catch {}
     if (status) status.textContent = returned ? '你的学习进度已云存档 · 登录即恢复' : '先逛逛这 20 词';
     if (btn) { btn.hidden = false; btn.textContent = '逛这 20 词'; }
-    if (bar) bar.style.width = '0%';
-    if (progRow) progRow.hidden = true;
     return;
   }
   const p = plan;
   if (!(p?.dict && p?.daily_goal)) {
     if (status) status.textContent = '设置学习计划后开始';
     if (btn) btn.hidden = true;
-    if (bar) bar.style.width = '0%';
-    if (progRow) progRow.hidden = true;
     return;
   }
   if (btn) btn.hidden = false;
-  if (progRow) progRow.hidden = false;
   if (userRows === null) {
     if (status) status.textContent = '--';
     if (btn) btn.textContent = '继续学习';
-    if (bar) bar.style.width = '0%';
     return;
   }
   const goal = p.daily_goal;
@@ -159,8 +154,14 @@ function renderLearnCard(userRows, checkinRows) {
   const shown = Math.min(done, goal);
   const over = Math.max(0, done - goal);
   const overEl = el('homeLearnOver');
-  if (status) status.textContent = `今日 ${shown}/${goal} 词${checked ? ' · 已打卡' : ''}`;
-  if (bar) bar.style.width = (goal ? Math.min(100, done / goal * 100) : 0).toFixed(1) + '%';
+  // 数字升格（2026-10-04）：三件套 replaceChildren——「今日」前缀 + 大数字 + 「词 · 已打卡」后缀
+  if (status) {
+    const k = document.createElement('span');
+    k.textContent = '今日';
+    const num = document.createElement('b');
+    num.textContent = `${shown}/${goal}`;
+    status.replaceChildren(k, num, checked ? '词 · 已打卡' : '词');
+  }
   if (overEl) { overEl.textContent = over > 0 ? `已超额 ${over} 词` : ''; overEl.hidden = over <= 0; }
 
   if (btn) btn.textContent = done === 0 ? '开始学习' : done < goal ? '继续学习' : `再学 ${goal} 词`;
@@ -224,7 +225,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-9783eec') : import('./review.js?v=staging-9783eec')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-1b6b118') : import('./review.js?v=staging-1b6b118')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
