@@ -1,0 +1,189 @@
+/* home: 首页任务流视图（docs/home-page.md §0/§2）——与 .browser 面板同机制的全屏视图：
+   默认 display:none，.open 显示。z-index 45：高于内容（header 20 / 固定播放器 30 / 词表面板 40）、
+   低于弹层（.auth 56 / .sheet 60；.survey 55 已随完整版问卷于 2026-09-30 移除），首访闸门 .start(50) 仍压在本页之上。
+   视觉全走现有卡片家族：--glass 底、--stroke 描边、18–22px 圆角、渐变按钮与 .learn-prog 渐变进度条；
+   不用 emoji（用户 2026-09-28 定调，docs/learn-mode.md §3），要图标时才上内联 Phosphor SVG（本页纯文字够用）。 */
+
+/* ---------- 视图开关与窄栏 ---------- */
+.home{position:fixed;inset:0;z-index:45;display:none;overflow:auto;overscroll-behavior:contain;
+  background:var(--bg);-webkit-overflow-scrolling:touch}
+.home.open{display:block}
+/* 桌面居中窄栏 max-width 480px（规格 §2），移动端即全宽；安全区留白让全面屏不顶格 */
+.home-in{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 20px calc(env(safe-area-inset-bottom,0px) + 28px)}
+
+/* ---------- 精简头：logo + 登录位 ---------- */
+.home-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
+/* logo 配方同 .logo（css/base.css:38-43 的 eq 音量条 + 展示字标），类名错开以免抢 document.querySelector('.logo') */
+.home-logo{display:flex;align-items:center;gap:10px}
+.home-logo b{font:800 24px/1 var(--f-display);letter-spacing:-.03em}
+.home-logo b span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.home-auth:empty{display:none}   /* home.js 未放登录入口时，留白即无形 */
+
+/* ---------- 问候行 + streak 行 ---------- */
+.home-hello{margin:0;font:800 26px/1.2 var(--f-display);letter-spacing:-.02em}
+.home-streak{margin:7px 0 0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ---------- 双主卡：卡片家族（--glass 底 / --stroke 描边 / 20px 圆角），≤599px 纵向堆叠 ---------- */
+.home-cards{display:grid;gap:12px;margin-top:24px}
+.home-card{display:flex;flex-direction:column;gap:10px;padding:16px 16px 14px;background:var(--glass);
+  border:1px solid var(--stroke);border-radius:20px}
+.home-card-label{font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+/* 学习卡今日口径行：配方同 .learn-status（css/profile.css:48） */
+.home-learn-num{margin:0;font-size:14px;font-weight:700;color:var(--soft);font-variant-numeric:tabular-nums}
+/* 学习卡进度条：.learn-prog（css/profile.css:49-50）直用，#homeLearnProg 是其中的渐变 i，宽度由 home.js 写 */
+/* 复习卡大数字：--f-display 展示字（规格 §2"复习卡主数字"），后缀小字收在基线上 */
+.home-review-num{margin:2px 0 0;display:flex;align-items:baseline;gap:8px}
+.home-review-num b{font:800 clamp(30px,9vw,38px)/1 var(--f-display);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.home-review-num span{font-size:13px;color:var(--muted)}
+/* ---------- W1（2026-09-30 工单）：复习卡 0 待巩固时的次级预览 ----------
+   P3 SRS 把新词 next_due 播到明天，当天刚学的词按设计不在复习池——复习卡只显示「0」会被读成
+   「我没学到东西」。本行在 0 池时补一句「今日新增 N · 明日可复习」，把"学过了 + 何时能复习"讲清楚。
+   明度取 --muted（比大数字弱、比占位 --dim 强），12.5px 收在卡片里不抢主数字；hidden 由 home.js 切 */
+.home-review-new{margin:0;font-size:12.5px;line-height:1.4;color:var(--muted);font-variant-numeric:tabular-nums}
+/* ---------- U7（2026-09-30）：复习 0 词到期时点复习卡的反馈 ----------
+   首页不跳走：副行改「明日 N 词待复习」并高亮——卡片描边琥珀色脉冲两拍（1.8s，js/home.js
+   nudgeReviewCard 加 .is-nudge，2.2s 后移除），副行文字同步转 --amber 加粗；文案更新保留 */
+.home-card.is-nudge{animation:homeNudge 1.8s ease}
+.home-card.is-nudge .home-review-new{color:var(--amber);font-weight:700}
+@keyframes homeNudge{
+  0%,100%{border-color:var(--stroke);box-shadow:none}
+  20%,60%{border-color:var(--amber);box-shadow:0 0 0 3px rgba(255,181,71,.16)}
+  40%,80%{border-color:var(--stroke);box-shadow:none}
+}
+/* ---------- W3（2026-09-30 工单）：学习卡超额副行 ----------
+   主数字已封顶到 goal/goal（12/5 → 5/5），超额量走本行「已超额 7 词」——量不丢、读得懂。
+   色取 --amber（同 .pick-hint 的提示色语义：这是补充信息，不是告警）；hidden 由 home.js 切，
+   无超额时整行不占位（零位移，不把按钮推下去） */
+.home-learn-over{margin:0;font-size:12.5px;line-height:1.4;color:var(--amber);font-variant-numeric:tabular-nums}
+/* 主按钮（2026-09-29 定调反转：待办权重高于已完成的）：复习卡「开始复习」= 渐变主 CTA（.auth-btn 同款），
+   学习卡「继续学习/再学 N 词」= 玻璃胶囊描边（.learn-btn 同款）；
+   margin-top:auto 让两张卡的按钮都对齐卡底（网格行等高拉伸） */
+.home-card-btn{margin-top:auto;align-self:flex-start;min-height:44px;border:1px solid var(--stroke-2);
+  border-radius:999px;padding:0 22px;font-size:14px;font-weight:800;background:var(--glass);color:var(--ink);
+  transition:background .15s,transform .15s}
+.home-card-btn:hover{background:var(--glass-2);transform:translateY(-1px)}
+.home-card-btn.is-grad{border:0;background:var(--grad);color:#1A0C14;box-shadow:0 6px 20px rgba(255,77,141,.35)}
+.home-card-btn.is-grad:hover{background:var(--grad);transform:scale(1.03)}
+
+/* ---------- 计划行：并入学习卡的脚注行（2026-10-02 用户需求：与学习组件合并防割裂） ----------
+   发丝线与卡主体分隔，弱化为元信息；点击经 js/home.js onPlan stopPropagation 隔离（不冒泡成开始学习） */
+.home-plan{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 0 0;border:0;
+  border-top:1px solid var(--stroke)}
+.home-plan-k{flex:none;font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.home-plan-text{flex:1;min-width:0;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.home-plan-text:empty::after{content:"--";color:var(--dim)}   /* 拉取失败/未填的占位（规格 §3） */
+.home-plan-btn{flex:none;border:1px solid var(--stroke-2);background:var(--glass);color:var(--ink);
+  border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;transition:background .15s,transform .15s}
+.home-plan-btn:hover{background:var(--glass-2);transform:translateY(-1px)}
+/* 无计划变形（规格 §2）：文案让位，整行收成 [设置学习计划] 主按钮（.is-empty 由 home.js 切）；
+   margin-top 归零——脚注款 12px 上边距 + flex gap 10 会在无计划态（按钮隐藏）攒出 22px 空隙
+   （1003 工单 W12：文案—发丝线间距口径 ≤16px） */
+.home-plan.is-empty{margin-top:0}
+.home-plan.is-empty .home-plan-k,.home-plan.is-empty .home-plan-text{display:none}
+.home-plan.is-empty .home-plan-btn{flex:1;min-height:44px;border:0;background:var(--grad);color:#1A0C14;
+  font-size:14px;box-shadow:0 6px 20px rgba(255,77,141,.35)}
+.home-plan.is-empty .home-plan-btn:hover{background:var(--grad);transform:scale(1.02)}
+
+/* ---------- 幽灵链接：浏览词库=关首页→词表面板（面板[关闭]经 stw:list-close 回首页，js/home.js） ---------- */
+.home-browse{display:block;width:fit-content;margin:28px auto 0;border:0;background:none;color:var(--muted);
+  padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;transition:color .15s,background .15s}
+.home-browse:hover{color:var(--ink);background:var(--glass)}
+/* W4（2026-09-30 工单）：首页计划行 [修改]（非空态，~37.5）与幽灵链接 [浏览词库]（~41）命中区 → 44。
+   AC7 全量审计发现的同族遗漏——同页 .home-card-btn / .home-plan.is-empty 已是 44 标准；仅移动断点 */
+@media (max-width:899px){ .home-plan-btn,.home-browse{min-height:44px} }
+
+/* ---------- 桌面 ≥600px：双主卡并排等宽（≤599px 维持上方纵向堆叠） ---------- */
+@media (min-width:600px){
+  .home-cards{grid-template-columns:1fr 1fr}
+  .home-in{padding-top:calc(env(safe-area-inset-top,0px) + 34px)}
+}
+
+/* ---------- 1003 工单 W9：桌面 home-in 480px 双列后单卡内容仅 ~182px，计划行 label(学习计划)+钮(修改)
+   固定件把 .home-plan-text 挤到 ~50px，13px 文案折成三行竖排与基线错位（s84）——
+   ≥900px 双列重排 1.2fr/.8fr（复习卡内容本就短，s84 半卡留白），学习卡文案列回到 ~107px 全文放得下；
+   行内再收 gap/按钮 padding + 文案 nowrap 兜底省略；基线由 .home-plan 的 align-items:center 保证；
+   ≤899px 移动单列堆叠本就成立，零变化 ---------- */
+@media (min-width:900px){
+  .home-cards{grid-template-columns:1.2fr .8fr}
+  .home-plan{gap:8px}
+  .home-plan-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .home-plan-btn{padding:6px 12px}
+}
+
+/* ---------- 词库进度圆环 + 打卡热力（2026-10-02 用户需求，二轮合并为一张卡） ----------
+   卡分两段：上段 .ring-row（圆环+数字），发丝线分隔下段热力抽屉；[hidden] 显式回收（display 覆盖 UA 默认） */
+.home-viz{display:flex;align-items:center;gap:16px;margin-top:12px;padding:16px;background:var(--glass);
+  border:1px solid var(--stroke);border-radius:20px}
+.home-viz[hidden]{display:none}
+.home-viz.is-column{flex-direction:column;align-items:stretch;gap:0}
+
+/* 圆环段：SVG 内联在 index.html，环形进度 = #ringBar 的 stroke-dashoffset（js 写），
+   渐变 ringGrad 与站内 --grad 同族（hot→coral→amber）；中心百分比绝对定位叠环心 */
+.ring-row{display:flex;align-items:center;gap:16px;padding-bottom:3px}
+.ring-wrap{position:relative;flex:none;width:76px;height:76px}
+.ring-wrap svg{display:block}
+.ring-track,.ring-bar{fill:none;stroke-width:7}
+.ring-track{stroke:rgba(255,255,255,.08)}
+.ring-bar{stroke:url(#ringGrad);stroke-linecap:round;transition:stroke-dashoffset .7s cubic-bezier(.3,.7,.3,1)}
+.ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font:800 17px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.ring-info{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ring-sub{margin:0;font:800 18px/1.2 var(--f-display);letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.ring-dict{margin:0;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* 热力段标题行（= 收起态小横条）：发丝线与圆环段分隔；累计打卡天数常驻在此（用户 2026-10-02 定调） */
+.hm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:13px;
+  padding:13px 0 0;border:0;border-top:1px solid var(--stroke);background:none;cursor:pointer;color:inherit;text-align:left}
+.hm-head-r{display:inline-flex;align-items:center;gap:10px}
+.hm-checkins{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hm-checkins b{color:var(--ink);font-weight:800;padding:0 1px}
+.hm-hint{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+.hm-chev{color:var(--muted);transition:transform .3s cubic-bezier(.3,.7,.3,1)}
+.hm.is-open .hm-chev{transform:rotate(180deg)}
+/* 抽屉：grid-template-rows 0fr/1fr 过渡收高；可见性带延迟——展开即见、收起动画播完再藏（Tab 焦点不漏进收起的抽屉） */
+.hm-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.3,.7,.3,1)}
+.hm.is-open .hm-body{grid-template-rows:1fr}
+.hm-body-in{overflow:hidden;position:relative;min-height:0;display:flex;flex-direction:column;gap:12px;
+  padding-right:8px;visibility:hidden;transition:visibility 0s .35s}
+.hm.is-open .hm-body-in{visibility:visible;transition:visibility 0s 0s}
+.hm-grid{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;grid-template-rows:repeat(7,auto);gap:4px}
+.hm-cell{aspect-ratio:1;width:100%;padding:0;border:0;border-radius:4px;background:rgba(255,255,255,.05);
+  cursor:pointer;transition:transform .12s}
+.hm-cell:hover{transform:scale(1.18)}
+.hm-cell:disabled{cursor:default}
+.hm-cell:disabled:hover{transform:none}
+.hm-cell[data-level="1"]{background:rgba(255,77,141,.22)}
+.hm-cell[data-level="2"]{background:rgba(255,77,141,.42)}
+.hm-cell[data-level="3"]{background:rgba(255,77,141,.62)}
+.hm-cell[data-level="4"]{background:rgba(255,122,89,.82)}
+.hm-cell[data-level="5"]{background:var(--grad)}
+.hm-cell.is-future{visibility:hidden}
+/* 月份标识行：GitHub 风格英文缩写（js/home-viz.js 绝对定位——居中段锚两条月界线中点
+   translateX(-50%)，尾段<2 列锚线右 3px；弃 grid 对齐：WebKit 对宽于轨道的网格项会把
+   start/stretch 渲染成右贴齐致文字压线）；窗口首日的残月也算一个月界段；
+   height 11px 撑行高（子项全绝对），-6px 抵消 .hm-body-in 的 12px flex gap 贴近网格 */
+.hm-months{display:block;position:relative;height:11px;font-size:11px;font-weight:600;
+  color:var(--dim);line-height:1;margin-bottom:-6px}
+.hm-mon{position:absolute;top:0;white-space:nowrap}
+/* 月界发丝线：js 按月起始列定位在 4px 列缝正中（两侧各留 1.5px 不触方格），
+   下端收 2px 不顶末行格底，从月份行顶贯穿到网格底与缩写一起圈出各月列组；
+   缩放/重渲染时由 placeDividers 重排 */
+.hm-div{position:absolute;width:1px;border-radius:1px;background:rgba(255,255,255,.13);pointer-events:none}
+/* 当天气泡浮层（点格子就地浮出，点网格外/Escape/重开抽屉收）：表面质感对齐 .auth-card 弹层家族
+   （深色半透明 + 1px 淡边 + 模糊 + 柔和投影）；--ax 是小箭头锚点（js 按格心写入），
+   气泡在格下方时箭头在上缘朝上，.is-above（气泡在格上方）翻到下缘朝下 */
+.hm-pop{position:absolute;z-index:5;display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:12px;
+  white-space:nowrap;pointer-events:none;background:rgba(24,21,48,.92);border:1px solid var(--stroke-2);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 16px 44px rgba(0,0,0,.5);
+  animation:hm-pop-in .2s cubic-bezier(.3,.7,.3,1)}
+@keyframes hm-pop-in{from{opacity:0;transform:translateY(5px) scale(.97)}}
+.hm-pop::after{content:"";position:absolute;left:var(--ax,50%);top:-4.5px;width:8px;height:8px;border-radius:1.5px;
+  background:inherit;border:1px solid var(--stroke-2);transform:translateX(-50%) rotate(45deg)}
+.hm-pop.is-above::after{top:auto;bottom:-4.5px}
+.hm-pop b{font:800 12px/1.2 var(--f-display);letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.hm-tag{flex:none;font-size:11px;font-weight:800;letter-spacing:.04em;border-radius:999px;padding:2px 7px;
+  background:rgba(255,181,71,.14);color:var(--amber)}
+.hm-tag.is-hit{background:rgba(74,222,128,.14);color:#4ADE80}
+.hm-tag.is-zero{background:rgba(255,255,255,.06);color:var(--dim)}
+.hm-nums{margin-left:auto;font-size:11px;font-weight:700;color:var(--soft);font-variant-numeric:tabular-nums}

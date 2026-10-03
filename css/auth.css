@@ -1,0 +1,135 @@
+/* auth / guest / review modal family — extracted verbatim; profile lands here or beside it. */
+
+/* ---------- G6（2026-09-29）：弹层方向性滑动动效 ----------
+   语义读感=连续翻页：资料卡入场=前进（右滑入）、#authModal/#profileModal 关闭=向右滑出+整层淡出。
+   参数集中本段 :root，JS 只按变量名引用（出场置 hidden 的计时读 --g6-dur-out，
+   见 js/auth.js / js/profile.js / js/feedback.js）。登录/注册弹层 2026-10-02 改为 tab 双表单切换，无步进动画。
+   显隐唯一事实源仍是 [hidden]（css/base.css:18）：入场动画靠 display:none→flex 会重启 CSS animation
+   的特性静态触发（资料卡每次显形必重放，JS 零介入）。
+   出场由 JS 挂 .g6-out、纯计时置 hidden——不挂 animationend：base.css:225 在 reduce 下
+   animation:none!important 会吞掉事件，且卡上未放完的入场动画的 animationend 会冒泡误报。
+   reduce 降级（无动画）：base.css:225 全局抹平入场动画；JS 出场分支 REDUCE.matches 时直接置 hidden，
+   不进计时。移动端安全：全程只动 transform/opacity，不触发重排。 */
+:root{
+  --g6-dur-in:.22s;                    /* 入场：资料卡滑入 */
+  --g6-dur-out:.18s;                   /* 出场：关层（压在 200ms 内，缩短「点了没反应/盖着不走」裸窗） */
+  --g6-ease:cubic-bezier(.3,.7,.25,1); /* 快出缓停，同站内 #learnProg 的手感 */
+  --g6-slide:26px;                     /* 水平位移：小位移+淡入，读感是翻页不是整卡平移 */
+}
+@keyframes g6-in{from{opacity:0;transform:translateX(var(--g6-slide))}}
+/* 资料卡入场：恒右滑入（自动/手动/defer 补弹同一动画——同一 display 重启路径）。
+   :not(.g6-out) 防出场在途重开时入场规则压住同元素的出场动画（特异性同算 ID 级，须显式互斥） */
+#profileModal:not([hidden]):not(.g6-out)>.auth-card{animation:g6-in var(--g6-dur-in) var(--g6-ease)}
+/* 认证卡入场（2026-10-02 与资料卡同族同权：同一 display 重启路径，开层必重放） */
+#authModal:not([hidden]):not(.g6-out)>.auth-card{animation:g6-in var(--g6-dur-in) var(--g6-ease)}
+/* 反馈小弹层入场（js/feedback.js 与 profile.js 同一套显隐路径，同族同权：入场若缺席则只出不进不对称） */
+#feedbackModal:not([hidden]):not(.g6-out)>.auth-card{animation:g6-in var(--g6-dur-in) var(--g6-ease)}
+/* 出场（弹层共用 .g6-out）：整层淡出 + 卡向右滑出；fill both 定格末帧，JS 计时（+30ms 余量）置
+   hidden 时画面已停在完全透明，不会闪尾。出场期间弹层仍全屏拦截点击（不许 pointer-events:none
+   放行下层页面——「延迟 hidden 期间点开别的东西」正是要防的），锁内重复交互全是 no-op */
+.auth.g6-out{animation:g6-veil-out var(--g6-dur-out) var(--g6-ease) both}
+.auth.g6-out>.auth-card{animation:g6-out-card var(--g6-dur-out) var(--g6-ease) both}
+@keyframes g6-veil-out{to{opacity:0}}
+@keyframes g6-out-card{to{opacity:0;transform:translateX(var(--g6-slide))}}
+
+/* ---------- auth: username + password login ---------- */
+/* 登录/注册 tab 分段控件（2026-10-02 邮箱验证码二合一改用户名+密码双表单）：胶囊分段轨道，
+   段间发丝线分隔；激活态复用 .auth-btn 的 --grad 底+深字，非激活=透明底弱字，克制、与弹层族同源。
+   × 钮改为与轨道同行 flex 排（.auth-x 默认绝对定位在卡右上角，会压住通宽轨道的注册 tab 角落）；
+   必须用 relative 不能用 static——.auth-x::after 热区是 absolute（inset:-6px），static 时会改锚最近的
+   定位祖先（auth-card）铺满整卡，把 tab 点击全吃掉（2026-10-02 E2E 实测）；且必须清掉 top/right——
+   基础规则的 top:10px/right:12px 是给 absolute 写的，relative 下会按偏移把按钮往轨道上拉
+   （实测左移 12px 压住注册 tab 角 4px，hover 玻璃底显形才暴露） */
+.auth-tabs-row{display:flex;align-items:center;gap:8px}
+#authModal .auth-x{position:relative;top:0;right:0;flex:none}
+.auth-tabs{flex:1;display:flex;padding:4px;border:1px solid var(--stroke-2);border-radius:999px;background:var(--glass)}
+.auth-tab{flex:1;height:36px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-weight:700;font-size:14px;transition:color .15s,background .15s}
+.auth-tab + .auth-tab{border-left:1px solid var(--stroke)}
+.auth-tab:hover{color:var(--ink)}
+.auth-tab[aria-selected="true"]{background:var(--grad);color:#1A0C14;font-weight:800}
+/* 1003 工单 W22（W4 重开）：按钮级 ellipsis 会把顶到预算的 .auth-name 整个换成孤「…」（Chromium 对放不下
+   的原子内联整体省略，N01 排除实验坐实省略号非 span 所画）——截断职责唯一归 .auth-name 自己（css/profile.css），
+   本层摘掉 text-overflow；max-width 150→210 让桌面 140 名字预算成真：border-box 下内容宽 210−30−2=178，
+   扣桌面头像盘 22（PD 备忘按移动盘 18 估的 200 会重演 1px 悬崖：168 < 22+7+140=169）+margin 7 后名字真实
+   可用 149 ≥140；游客态「登录」pill 按内容自适应远够不到上限，渲染零变化；overflow:hidden 保留作兜底 */
+.btn-auth{flex:none;display:inline-block;max-width:210px;border:1px solid var(--stroke-2);background:var(--glass);color:var(--ink);border-radius:999px;padding:7px 15px;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden}
+.btn-auth:hover{background:var(--glass-2)}
+.auth{position:fixed;inset:0;z-index:56;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,5,12,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+/* menu mode: the button was clicked while logged in — no backdrop, just a small card under it */
+.auth.menu{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;pointer-events:none}
+.auth.menu .auth-card{display:none}
+.auth-card{position:relative;width:min(360px,100%);padding:28px 24px 22px;border-radius:24px;background:#181530;border:1px solid var(--stroke-2);box-shadow:0 24px 70px rgba(0,0,0,.6);text-align:center;display:flex;flex-direction:column;gap:12px}
+.auth-card form{margin:0;display:flex;flex-direction:column;gap:12px}
+/* qa_journey_vision_1002 工单 P（R1）：计划向导步骤容器与 form 同构纵排——步骤 div 曾是无样式裸盒，
+   按钮退化 inline 并排挤压主 CTA；主钮全宽、次要动作独占一行、动作间距统一 12px，键盘焦点序不变 */
+.auth-step{display:flex;flex-direction:column;gap:12px}
+.auth-card h3{margin:0;font:800 24px var(--f-display);letter-spacing:-.02em}
+.auth-card p{margin:0;color:var(--soft);font-size:14px}
+/* 16px 下限：iOS Safari 聚焦 <16px 输入框会强制缩放页面（2026-10-02 交互修复） */
+.auth-input{width:100%;height:46px;border:1px solid var(--stroke-2);background:var(--glass);color:var(--ink);border-radius:999px;padding:0 18px;font:inherit;font-size:16px}
+.auth-input::placeholder{color:var(--muted)}
+.auth-input:focus{outline:none;border-color:var(--hot);background:var(--glass-2)}
+/* F1（2026-09-29）非法输入行内报错的描红：JS 校验失败加 .is-bad，输入即摘（js/auth.js）；
+   底色 .14——与 :focus 的粉边拉开（只差边色时两者肉眼难分，E2E 截图实证） */
+.auth-input.is-bad{border-color:#FF5C5C;background:rgba(255,92,92,.14)}
+/* 密码可见性切换（Phosphor eye/eye-slash 内联 SVG，仓库图标惯例）：包裹行定位，
+   输入框让出右侧空间；按钮 ::after 扩热区到 ~44px */
+.auth-pass-wrap{position:relative}
+.auth-pass-wrap .auth-input{padding-right:52px}
+.auth-eye{position:absolute;top:50%;right:8px;transform:translateY(-50%);width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:0;border-radius:50%;background:transparent;color:var(--muted);cursor:pointer}
+.auth-eye::after{content:"";position:absolute;inset:-4px;border-radius:50%}
+.auth-eye:hover{color:var(--ink);background:var(--glass-2)}
+.auth-eye svg{width:20px;height:20px}
+/* 主色钮=每页唯一引导（2026-10-03 用户定调）：每页最多一个 .auth-btn，指向用户下一步的主路径；
+   页面只剩一条去路时该钮升主色（如复习总结只剩「退出」），其余去路一律 .auth-alt 幽灵款 */
+.auth-btn{height:46px;border:0;border-radius:999px;font-weight:800;font-size:15px;background:var(--grad);color:#1A0C14;box-shadow:0 6px 20px rgba(255,77,141,.35);transition:transform .15s}
+.auth-btn:hover{transform:scale(1.03)}
+.auth-btn[disabled]{opacity:.55;transform:none;cursor:default}
+.auth-alt{border:0;background:none;padding:0;font-size:13px;font-weight:600;color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+.auth-alt:hover{color:var(--ink)}
+/* 文字链热区（用户 2026-09-29：退出/保存学习计划等下划线小字可点性差）——伪元素外扩到 ~44px 高，外观不变。
+   W4（2026-09-30 工单）：纵向 12 → 13px（19.5 + 26 = 45.5 ≥ 44；原 43.5 差 0.5px，AC7 审计项） */
+.auth-alt{position:relative}
+.auth-alt::after{content:"";position:absolute;inset:-13px -14px}
+.auth-alt[disabled]{cursor:default;text-decoration:none;opacity:.9}
+.auth-card .auth-hint{font-size:12px;line-height:1.7;color:var(--muted)}
+/* 注册用户名预检状态（js/auth.js 防抖 RPC 回写）：绿=可注册，琥珀=已被注册，复用右侧语义色 */
+.auth-card .auth-hint.is-ok{color:var(--right-green)}
+.auth-card .auth-hint.is-warn{color:var(--amber)}
+/* 1003 工单 W16：err 从琥珀改珊瑚——琥珀收归「可自行纠正的提示」（预检 hint is-warn），
+   珊瑚=提交被拒（色在品牌渐变内非新色），消掉「已被注册」预检 hint 与提交 err 双琥珀同屏（b12） */
+.auth-card .auth-err{font-size:13px;line-height:1.6;color:var(--coral)}
+.auth-err:empty{display:none}
+.auth-x{position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:20px;line-height:1}
+.auth-x:hover{background:var(--glass-2);color:var(--ink)}
+/* × 热区（用户 2026-09-29：32px 视觉太小）：伪元素外扩 6px 到 ~44px 可点热区，视觉不变 */
+.auth-x::after{content:"";position:absolute;inset:-6px;border-radius:50%}
+.auth-menu{position:fixed;pointer-events:auto;display:flex;flex-direction:column;gap:8px;min-width:210px;padding:12px 14px;border-radius:16px;background:#181530;border:1px solid var(--stroke-2);box-shadow:0 16px 44px rgba(0,0,0,.55);text-align:left}
+.auth-menu .auth-mail{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.auth-menu button{height:38px;border:1px solid var(--stroke-2);border-radius:999px;background:var(--glass-2);color:var(--ink);font-size:13px;font-weight:700}
+.auth-menu button:hover{background:var(--ink);color:var(--bg)}
+@media (max-width:899px){
+  /* 手机放开到 5-6 个汉字昵称能完整显示（2026-09-29：中文昵称曾在此被截成"…"）；
+     .prog 已让位（下一条规则），logo + 完整版 + 头像 pill 在 360px 下仍放得下。
+     1003 工单 W4：已登录态放宽到 168px——12 位用户名曾差 1px 被截成"…"（20 位上限是结构冲突）；
+     游客态只有「登录」二字远够不到上限，渲染零变化。
+     1003 工单 W22：名字预算 118→116 随根因修正挪到 profile.css（本按钮内容宽 168−24−2=142，扣除
+     头像 18+margin 7 后名字真实可用 117px，118 是 off-by-one——多出的 1px 曾把省略号顶到按钮层） */
+  .btn-auth{max-width:168px;padding:7px 12px}
+  /* the progress readout yields its space so logo + two pills still fit the phone header */
+  .top:has(.btn-auth:not([hidden])) .prog{display:none}
+}
+/* guest mode (docs/guest-mode.md §2): the trial hides the sung-progress readout on every viewport */
+body.guest .prog{display:none}
+/* guest mode: one-time welcome modal (docs/guest-mode.md §3) — the auth card re-labeled for the first visit */
+.auth-card .welcome-sub{display:block;margin-top:3px;font-size:11.5px;font-weight:500;opacity:.75;letter-spacing:.02em}
+#welcomeLogin .welcome-sub{color:#1A0C14}   /* the small line rides on the gradient pill: keep the dark ink */
+.auth-card .welcome-skip{text-decoration:none;color:var(--soft);border:1px solid var(--stroke-2);border-radius:999px;height:44px;font-size:14px}
+.auth-card .welcome-skip:hover{background:var(--glass-2);color:var(--ink)}
+/* 引导性说明条（qa_journey_vision_1002 工单 L）：中性弱底+实线弱边——引导≠错误，琥珀收归警示语义
+   （:focus-visible 焦点环已改 --hot，css/base.css:25）；虚线仅保留给「系统填入/只读」输入框（.profile-mail） */
+.auth-card .auth-why{padding:9px 34px 9px 12px;border:1px solid var(--stroke);border-radius:12px;background:var(--glass);color:var(--soft);font-size:13px;line-height:1.6;text-align:left}
+/* 次要动作胶囊（qa_journey_vision_1002 工单 C）：核心动作不再用下划线链接款（.auth-alt 保留给退出类），
+   描边玻璃胶囊与 .learn-btn（css/profile.css）同族，与渐变主钮 .auth-btn 保持主次差 */
+.auth-secondary{height:46px;border:1px solid var(--stroke-2);border-radius:999px;background:var(--glass);color:var(--ink);font-weight:800;font-size:15px;transition:background .15s,transform .15s}
+.auth-secondary:hover{background:var(--glass-2);transform:translateY(-1px)}

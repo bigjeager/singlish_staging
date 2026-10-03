@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0A14">
+<title>Singlish</title>
+<meta name="description" content="听歌记单词：1500+ 考试词（雅思/四六级/托福），每个都藏在一段流行歌里。Apple Music 官方试听 + 卡拉 OK 同步歌词。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Singlish">
+<meta property="og:title" content="Singlish · 听歌记单词">
+<meta property="og:description" content="1500+ 考试词，每个都藏在一段流行歌里。点一下，听歌手把这个词唱出来。">
+<meta property="og:url" content="https://singlish.study/">
+<meta property="og:image" content="https://singlish.study/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Singlish · 听歌记单词">
+<meta name="twitter:description" content="1500+ 考试词，每个都藏在一段流行歌里。">
+<meta name="twitter:image" content="https://singlish.study/og.png">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="fba457cc-095a-4b9a-a30f-5c8a0d3aeaa3" data-domains="singlish.study" data-exclude-hash="true"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
+<link rel="stylesheet" href="./css/base.css?v=staging-767b940">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-767b940">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-767b940">
+  <link rel="stylesheet" href="./css/home.css?v=staging-767b940">
+</head>
+<body>
+<div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
+
+<header class="top">
+  <div class="logo"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><h1>Sing<span>lish</span></h1></div>
+  <p class="tagline">听歌记单词 · 每个考词都藏在一段流行歌里</p>
+  <div class="grow"></div>
+  <div class="prog"><div class="prog-bar"><i id="progFill"></i></div><span><b id="doneCount">0</b> / <span id="totalCount">1571</span><span class="prog-word"> 已唱</span></span></div>
+  <button type="button" class="btn-auth" id="authBtn" hidden>登录</button>
+</header>
+
+<main class="app">
+  <section class="browser" id="browser" aria-label="单词列表">
+    <div class="browser-head"><h2>词表</h2><button type="button" id="closeList">关闭</button></div>
+    <div class="filters">
+      <label class="search"><span class="sr">搜索</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="搜单词、释义、歌名或歌手" autocomplete="off"></label>
+      <div class="chips" id="dictChips" role="group" aria-label="选择词典">
+        <button type="button" data-d="all" aria-pressed="true">全部</button>
+        <button type="button" data-d="ielts" aria-pressed="false">雅思</button>
+        <button type="button" data-d="cet4" aria-pressed="false">四级</button>
+        <button type="button" data-d="cet6" aria-pressed="false">六级</button>
+        <button type="button" data-d="toefl" aria-pressed="false">托福</button>
+        <button type="button" data-d="fav" aria-pressed="false">★ 收藏</button>
+      </div>
+    </div>
+    <p class="count" id="countLine"></p>
+    <!-- 游客 20 词限制提示（docs/guest-mode.md §2，2026-09-29 增补；2026-09-30 全量切换后总数改运行时口径，文案不再烙死总数）：仅 body.guest 露出（css/base.css），登录态/完整模式不渲染感知 -->
+    <p class="count guest-note">游客可见 20 词，登录解锁全部</p>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <aside class="aside">
+    <!-- 词为中心（用户 2026-09-28 定调）：词卡+歌词先露脸，歌曲信息（deck）随后，播放器收底 -->
+    <div id="deskStage"></div>
+    <!-- 会话键行（docs/learn-mode.md §4）：歌词与歌曲横幅之间，学习/复习同构两键（P8 2026-10-01 用户定调：
+         复习态「跳过」也删掉，下一词统一承担——未答点它=跳过语义（复习闪释义不计分/学习不计学绕回），
+         答完点它=实际下一词；「答题」未答时=立即出题，答完待前进态=等同下一词）；
+         门题/测验答后 600/1200ms 染色即收卡回词面，弹层内不放前进钮（#quizNext 仅学习 recap 用）；
+         模式类互斥由 js 保证（setMode/setLearnBody 启动互清，P5） -->
+    <div class="review-ops" id="reviewOps">
+      <button type="button" class="rev-op" id="rvKnow" title="答题——不等唱完，直接出题">答题</button>
+      <button type="button" class="rev-op" id="rvNext" title="下一词——没答的词跳过稍后再遇，答完的词正常前进">下一词</button>
+    </div>
+    <div class="deck" id="deck"><div class="deck-bg" id="deckBg"></div>
+      <!-- 歌曲卡+控制条合一（用户反馈：两张独立卡太高挤歌词）：.deck-main 承载唱片与信息行，发丝线下 .ctl 控制行收底；
+           id/类/SVG 零改动，js 与 e2e 全按 id 契约取 -->
+      <div class="deck-main">
+        <div class="deck-cd"><img id="deckArt" alt=""></div>
+        <div class="deck-info"><span class="clip" id="clipTag">30 秒试听</span><b id="deckTitle"></b><span id="deckArtist"></span><a id="deckLink" href="#" target="_blank" rel="noopener"><span class="long">在 </span>Apple Music<span class="long"> 听完整首</span> ↗</a></div>
+      </div>
+      <div class="deck-prog"><i id="deckProg"></i></div>
+      <div class="ctl" id="ctl">
+      <button type="button" class="play" id="play" aria-label="播放"><svg id="icoPlay" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 4.8v14.4c0 .8.9 1.3 1.6.8l11-7.2a1 1 0 0 0 0-1.6l-11-7.2C8.9 3.5 8 4 8 4.8z"/></svg><svg id="icoPause" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg></button>
+      <button type="button" id="prev" aria-label="上一个" title="上一个"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="2.6" height="14" rx="1.2"/><path d="M19 6.2v11.6c0 .8-.9 1.3-1.6.8L9.6 13.3a1.5 1.5 0 0 1 0-2.6l7.8-5.3c.7-.5 1.6 0 1.6.8z"/></svg></button>
+      <button type="button" id="next" aria-label="下一个" title="下一个"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="16.4" y="5" width="2.6" height="14" rx="1.2"/><path d="M5 6.2v11.6c0 .8.9 1.3 1.6.8l7.8-5.3a1.5 1.5 0 0 0 0-2.6L6.6 5.4C5.9 4.9 5 5.4 5 6.2z"/></svg></button>
+      <button type="button" id="replay" aria-label="重播片段" title="重播片段"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button>
+      <button type="button" class="tog" id="shuffle" aria-pressed="false" aria-label="随机播放" title="随机播放"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg></button>
+      <button type="button" class="tog" id="loop" aria-pressed="false" aria-label="单曲循环" title="单曲循环"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/><path d="M11 10.2l1.6-1.2v6" stroke-width="2"/></svg></button>
+      <span class="time" id="time">0:00 / 0:00</span>
+      </div></div>
+    <!-- 情境化会话条 (docs/learn-mode.md §3 + docs/home-page.md): hidden until js/learn.js reveals it on login.
+         单行：[←] 学习/复习 x/y [按钮]，进度收成卡片背景填充宽度（#learnProg 全高底衬）；
+         复习入口只在首页。左侧 [←] 回首页 -->
+    <div class="learn-row" id="learnRow" hidden>
+      <button type="button" class="home-back" id="homeBack" aria-label="返回首页" title="返回首页"><svg width="16" height="16" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M224 128H48"/><path d="m88 168-40-40 40-40"/></svg></button>
+      <span class="learn-status" id="learnStatus"></span><button type="button" class="learn-btn" id="learnBtn" hidden>学习</button>
+      <i id="learnProg"></i>
+    </div>
+    <p class="hint">点卡片就开唱 · <kbd>←</kbd> <kbd>→</kbd> 换词 · <kbd>↑</kbd> <kbd>↓</kbd> 换歌 · <kbd>空格</kbd> 暂停</p>
+  </aside>
+
+  <div class="carousel" id="carousel" aria-label="左右滑动切换单词"></div>
+  <!-- W4（2026-09-30 工单）：移动端词卡轮播的回首页按钮（iteration_1 W2：裸文本 × 改内联 Phosphor
+       arrow-left SVG，与 #homeBack 同图标族，findings B3）。
+       游客点词卡进轮播后，会话条 [←]（#learnRow）只在登录态露出，游客唯一的回首页路径是点品牌
+       logo——不可发现、无提示。本钮仅「移动断点 + 会话外（learnRow 隐藏）」时露出（js/app.js 开关），
+       点击与 logo 同语义：派 'stw:home-open' 让 home.js 开首页（learn/review 也会借此收场）。
+       桌面不渲染（轮播本身是移动端专属），会话内不渲染（已有 [←]，两个返回钮是噪音）。
+       位置：左上角贴头部下方——右上角被卡片 [☆][分享] 占住，左上是「回上一页」的常规位。 -->
+  <button type="button" class="carousel-x" id="carouselClose" hidden aria-label="返回首页" title="返回首页"><svg width="18" height="18" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M224 128H48"/><path d="m88 168-40-40 40-40"/></svg><span class="carousel-x-label">词库</span></button>
+
+  <p class="foot">歌曲片段为 Apple Music 官方 30 秒试听，逐行时间轴歌词实时取自 LRCLIB 公共歌词库，词曲版权归原作者及唱片公司。每个片段只截取唱到目标词的前后几句，逐词高亮按试听音频里的实际演唱时间同步。</p>
+</main>
+
+<!-- home view (docs/home-page.md §0/§2): 每日任务流首页——问候 / streak / 学习·复习双主卡 / 计划行 / 逛词库出口。
+     与 .browser 面板同机制的全屏视图：默认 display:none，.open 显示（css/home.css）；
+     z-index 45——高于内容（header 20 / 播放器 30 / 词表面板 40），低于 .auth 弹层（56）。
+     本块只出骨架，接线在 js/home.js（后续阶段）：id 即契约，改一个字母就断一条腿 -->
+<section class="home" id="homeView" aria-label="首页">
+  <div class="home-in">
+
+    <!-- 精简头：logo（点击关首页，接线在 home.js）+ 登录位。#homeAuth 是占位——home.js 往里放
+         登录入口或留白；不复制 #authBtn，全页 id 唯一 -->
+    <header class="home-head">
+      <div class="home-logo"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>Sing<span>lish</span></b></div>
+      <span class="home-auth" id="homeAuth"></span>
+    </header>
+
+    <!-- 问候行（按时段 + 日期）与 streak 行：home.js 填文案，纯文字无 emoji -->
+    <p class="home-hello" id="homeGreet"></p>
+    <p class="home-streak" id="homeStreak"></p>
+
+    <!-- 双主卡：等宽两列、≤599px 纵向堆叠（css/home.css）；学习卡带今日进度条，
+         .learn-prog 直接复用 css/profile.css 的渐变配方，#homeLearnProg 是其中的渐变 i。
+         按钮权重（2026-09-29 定调反转：待办的高于已完成的）：渐变主钮 is-grad 摆在复习卡的
+         [开始复习] 上，学习卡 [再学 N 词]（已达标态）用描边弱钮——静态摆放，js 不切。
+         学习计划并入学习卡（2026-10-02 用户需求：两处割裂）——发丝线分隔的脚注行
+         （#homePlanRow：计划文案 + [修改]；无计划整行收成 [设置学习计划] 渐变钮，js/home.js 切），
+         点击经 onPlan stopPropagation 隔离，不冒泡成学习卡的开始学习 -->
+    <div class="home-cards">
+      <div class="home-card" id="homeLearnCard">
+        <span class="home-card-label">学习</span>
+        <p class="home-learn-num" id="homeLearnStatus">今日 -- 词</p>
+        <div class="learn-prog"><i id="homeLearnProg"></i></div>
+        <!-- W3（2026-09-30 工单）：超额副行——done > goal 时「已超额 N 词」，主数字已封顶到 goal/goal；
+             hidden 由 home.js 切，无超额时整行不占位（零位移） -->
+        <p class="home-learn-over" id="homeLearnOver" hidden></p>
+        <button type="button" class="home-card-btn" id="homeLearnBtn">开始学习</button>
+        <div class="home-plan" id="homePlanRow">
+          <span class="home-plan-k">学习计划</span>
+          <span class="home-plan-text" id="homePlanText"></span>
+          <button type="button" class="home-plan-btn" id="homePlanEdit">修改</button>
+          <button type="button" class="home-plan-btn" id="homePlanSet" hidden>设置学习计划</button>
+        </div>
+      </div>
+      <div class="home-card" id="homeReviewCard">
+        <span class="home-card-label">复习</span>
+        <p class="home-review-num"><b id="homeReviewNum">--</b><span>词待巩固</span></p>
+        <!-- W1（2026-09-30 工单）：复习卡 0 待巩固时的次级预览——P3 SRS 把新词 next_due 播种到明天，
+             当天刚学的词不在复习池里，复习卡只剩「0」会让用户以为"我没学到东西"。本行补一句
+             「今日新增 N · 明日可复习」，把「学过了、明天来巩固」讲清楚。hidden 由 home.js 切 -->
+        <p class="home-review-new" id="homeReviewNew" hidden></p>
+        <button type="button" class="home-card-btn is-grad" id="homeReviewBtn" hidden>开始复习</button>
+      </div>
+    </div>
+
+    <!-- 词库进度 + 打卡热力（2026-10-02 用户需求，二轮合并）：一张卡两段——上段圆环（词库已学/总数），
+         发丝线分隔下段打卡热力抽屉（默认收起，#hmToggle 点击展开/收回，.is-open 切 grid-template-rows
+         0fr/1fr 抽屉动画，chevron 旋转），累计打卡天数常驻收起的小横条上；展开后 #hmMonths 出 GitHub 风
+         英文月份行、月起始列左缘 .hm-div 发丝竖线（月份行顶贯穿网格底）圈出各月列组，点格子 #hmPop
+         在格旁就地浮出当天气泡（学习/复习词数，点网格外/Escape/重开抽屉收）。
+         数值全由 js/home-viz.js 渲染：圆环 = #ringBar 的 stroke-dashoffset，格子全由 #hmGrid 空壳生成；
+         游客/未登录整卡隐藏 -->
+    <div class="home-viz is-column hm" id="homeViz" hidden>
+      <div class="ring-row">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 72 72" width="76" height="76" aria-hidden="true">
+            <defs>
+              <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FF4D8D"/><stop offset=".55" stop-color="#FF7A59"/><stop offset="1" stop-color="#FFB547"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="36" cy="36" r="31"></circle>
+            <circle class="ring-bar" id="ringBar" cx="36" cy="36" r="31" transform="rotate(-90 36 36)"></circle>
+          </svg>
+          <b class="ring-pct" id="ringPct">--</b>
+        </div>
+        <div class="ring-info">
+          <span class="home-card-label">词库进度</span>
+          <p class="ring-sub" id="ringSub">--</p>
+          <p class="ring-dict" id="ringDict"></p>
+        </div>
+      </div>
+      <button type="button" class="hm-head" id="hmToggle" aria-expanded="false" aria-controls="hmBody">
+        <span class="home-card-label">打卡热力</span>
+        <span class="hm-head-r"><span class="hm-checkins" id="hmCheckins"></span><span class="hm-hint">近 17 周</span><svg class="hm-chev" width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m216 88-80 80-80-80"/></svg></span>
+      </button>
+      <div class="hm-body" id="hmBody">
+        <div class="hm-body-in">
+          <div class="hm-months" id="hmMonths" aria-hidden="true"></div>
+          <div class="hm-grid" id="hmGrid"></div>
+          <div class="hm-pop" id="hmPop" hidden aria-live="polite"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 计划行已并入学习卡（见 home-cards 注释） -->
+
+
+    <!-- 幽灵链接：浏览词库=关首页→词表网格面板（原头部右上角入口，用户 2026-09-28 定调迁入首页，
+         面板开关归 app.js 的 __stwOpenList 钩子；面板[关闭]经 stw:list-close 回首页，词卡点击则留在轮播） -->
+    <button type="button" class="home-browse" id="homeList">浏览词库 →</button>
+
+  </div>
+</section>
+
+<!-- auth: 用户名+密码登录/注册弹层（docs/auth-userpass.md）；行为在 js/auth.js。
+     novalidate 关掉 HTML5 原生约束校验（英文气泡先于 submit 拦截），中文行内错误全交 auth.js；
+     用户名输入关自动大写/纠错/拼写检查（规则 ^[a-z0-9_]{3,20}$，大写会被静默拒绝） -->
+<div class="auth" id="authModal" hidden role="dialog" aria-modal="true" aria-label="登录 / 注册">
+  <div class="auth-card">
+    <div class="auth-tabs-row">
+      <div class="auth-tabs" id="authTabs" role="tablist" aria-label="登录或注册">
+        <button type="button" class="auth-tab" id="authTabLogin" role="tab" aria-selected="true" aria-controls="authLoginForm">登录</button>
+        <button type="button" class="auth-tab" id="authTabRegister" role="tab" aria-selected="false" aria-controls="authRegisterForm">注册</button>
+      </div>
+      <button type="button" class="auth-x" id="authClose" aria-label="关闭">×</button>
+    </div>
+    <form id="authLoginForm" role="tabpanel" aria-labelledby="authTabLogin" novalidate hidden>
+      <p class="auth-why" id="authWhy" hidden></p>
+      <input class="auth-input" id="authLoginUser" name="username" type="text" maxlength="20" required placeholder="用户名" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="auth-pass-wrap">
+        <input class="auth-input" id="authLoginPass" name="password" type="password" required placeholder="密码" autocomplete="current-password" enterkeyhint="go">
+        <button type="button" class="auth-eye" data-eye="authLoginPass" aria-label="显示密码" aria-pressed="false"><svg class="i-eye" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></svg><svg class="i-eye-off" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor" hidden><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></svg></button>
+      </div>
+      <button type="submit" class="auth-btn" id="authLoginBtn">登录</button>
+      <p class="auth-err" id="authErrLogin" role="alert"></p>
+    </form>
+    <form id="authRegisterForm" role="tabpanel" aria-labelledby="authTabRegister" novalidate hidden>
+      <p class="auth-hint" id="authRegHint">小写字母/数字/下划线 3-20 位 · 密码至少 6 位</p>
+      <input class="auth-input" id="authRegUser" name="username" type="text" maxlength="20" required placeholder="用户名" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <div class="auth-pass-wrap">
+        <input class="auth-input" id="authRegPass" name="newpass" type="password" required placeholder="设置密码（至少 6 位）" autocomplete="new-password">
+        <button type="button" class="auth-eye" data-eye="authRegPass" aria-label="显示密码" aria-pressed="false"><svg class="i-eye" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></svg><svg class="i-eye-off" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor" hidden><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></svg></button>
+      </div>
+      <div class="auth-pass-wrap">
+        <input class="auth-input" id="authRegPass2" name="newpass2" type="password" required placeholder="确认密码" autocomplete="new-password" enterkeyhint="go">
+        <button type="button" class="auth-eye" data-eye="authRegPass2" aria-label="显示密码" aria-pressed="false"><svg class="i-eye" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor"><path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"/></svg><svg class="i-eye-off" viewBox="0 0 256 256" aria-hidden="true" fill="currentColor" hidden><path d="M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z"/></svg></button>
+      </div>
+      <button type="submit" class="auth-btn" id="authRegBtn">注册</button>
+      <p class="auth-err" id="authErrReg" role="alert"></p>
+    </form>
+  </div>
+</div>
+
+<!-- profile card (docs/user-profile.md §3.2); behavior lives in js/profile.js -->
+<div class="auth" id="profileModal" hidden role="dialog" aria-modal="true" aria-label="个人资料">
+  <div class="auth-card profile-card">
+    <button type="button" class="auth-x" id="profileClose" aria-label="关闭">×</button>
+    <span class="profile-avatar" id="profileAvatar" aria-hidden="true"></span>
+    <div class="profile-field"><span class="profile-label">头像 · 选一个音乐风格</span><div class="avatar-picker" id="profilePicker" role="radiogroup" aria-label="选择音乐风格头像"></div></div>
+    <form id="profileForm">
+      <label class="profile-field" for="profileName"><span class="profile-label">昵称</span>
+        <input class="auth-input" id="profileName" type="text" maxlength="20" autocomplete="nickname" placeholder="">
+      </label>
+      <div class="profile-field"><span class="profile-label">登录名<span class="profile-label-note">注册后不可修改</span></span><p class="profile-mail" id="profileMail"></p></div>
+      <button type="submit" class="auth-btn" id="profileSave">保存</button>
+      <p class="auth-err" id="profileErr" role="alert"></p>
+    </form>
+    <button type="button" class="profile-feedback" id="profileFeedbackBtn">意见反馈</button>
+    <div class="profile-logout-row"><button type="button" class="profile-alt" id="profileLogout">退出登录</button><button type="button" class="profile-alt" id="profileLogoutCancel" hidden>取消</button></div>
+  </div>
+</div>
+
+<!-- feedback (write-only, supabase/schema-0006-feedback.sql); behavior lives in js/feedback.js -->
+<div class="auth" id="feedbackModal" hidden role="dialog" aria-modal="true" aria-label="意见反馈">
+  <div class="auth-card">
+    <button type="button" class="auth-x" id="feedbackClose" aria-label="关闭">×</button>
+    <h3>意见反馈</h3>
+    <p class="feedback-hint">用着不顺手或想要的功能，写下来告诉我们</p>
+    <form id="feedbackForm">
+      <textarea id="feedbackText" class="auth-input feedback-text" rows="4" maxlength="500" placeholder="想说的都写在这里"></textarea>
+      <div class="feedback-meta"><span id="feedbackCount">0/500</span></div>
+      <button type="submit" class="auth-btn" id="feedbackSubmit">提交</button>
+      <p class="auth-err" id="feedbackErr" role="alert"></p>
+    </form>
+  </div>
+</div>
+
+<!-- guest mode: one-time welcome modal (docs/guest-mode.md §3); behavior lives in the auth script block below -->
+<div class="auth" id="welcomeModal" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="auth-card">
+    <button type="button" class="auth-x" id="welcomeClose" aria-label="关闭">×</button>
+    <h3 id="welcomeTitle">欢迎来到 Singlish</h3>
+    <p>听歌记单词 · 每个考词都藏在一段流行歌里</p>
+    <button type="button" class="auth-btn" id="welcomeLogin">注册 / 登录<small class="welcome-sub">全部单词 · 保存进度 · 复习</small></button>
+    <button type="button" class="auth-alt welcome-skip" id="welcomeSkip">先随便看看<small class="welcome-sub">体验 20 个单词，不保存记录</small></button>
+  </div>
+</div>
+
+<!-- learn plan setup (docs/learn-mode.md §3 W2): chips/goal highlight + stw:plan-save dispatch live in js/app.js, the plan upsert in js/learn.js -->
+<div class="auth" id="planSetupModal" hidden role="dialog" aria-modal="true" aria-label="设置学习计划">
+  <div class="auth-card">
+    <button type="button" class="auth-x" id="planSetupClose" aria-label="关闭">×</button>
+    <div class="auth-step" id="planStepPlan">
+      <h3 tabindex="-1">设置学习计划</h3>
+      <div class="plan-field"><span class="plan-label">选字典</span>
+        <div class="plan-chips" id="planChips" role="group" aria-label="选择学习字典">
+          <button type="button" class="plan-chip" data-dict="all" aria-pressed="true">全部</button>
+          <button type="button" class="plan-chip" data-dict="ielts" aria-pressed="false">雅思</button>
+          <button type="button" class="plan-chip" data-dict="cet4" aria-pressed="false">四级</button>
+          <button type="button" class="plan-chip" data-dict="cet6" aria-pressed="false">六级</button>
+          <button type="button" class="plan-chip" data-dict="toefl" aria-pressed="false">托福</button>
+        </div>
+      </div>
+      <div class="plan-field"><span class="plan-label">每日词数</span>
+        <div class="goal-opts" id="planGoals" role="group" aria-label="每日学习词数">
+          <button type="button" class="goal-opt" data-goal="5" aria-pressed="false">5 词</button>
+          <button type="button" class="goal-opt" data-goal="10" aria-pressed="true">10 词</button>
+          <button type="button" class="goal-opt" data-goal="15" aria-pressed="false">15 词</button>
+          <button type="button" class="goal-opt" data-goal="20" aria-pressed="false">20 词</button>
+        </div>
+      </div>
+      <button type="button" class="auth-secondary" id="planSaveOnly">保存学习计划</button>
+      <button type="button" class="auth-btn" id="planStart">保存并开始学习</button>
+    </div>
+    <div class="auth-step" id="planStepProfile" hidden>
+      <h3 tabindex="-1">完善个人资料</h3>
+      <p class="plan-sub">选一个音乐风格头像、起个名字，报告里就用它称呼你</p>
+      <div class="avatar-picker" id="planAvatarPicker" role="radiogroup" aria-label="选择音乐风格头像"></div>
+      <input class="auth-input" id="planName" type="text" maxlength="20" autocomplete="nickname" placeholder="">
+      <button type="button" class="auth-btn" id="planGo">开始学习</button>
+      <button type="button" class="auth-secondary" id="planSkip">跳过，直接开始学习</button>
+    </div>
+  </div>
+</div>
+
+<!-- daily check-in card (docs/learn-mode.md §3 W2): the two buttons dispatch stw:checkin-extra / stw:checkin-exit (js/app.js), the flow lives in js/learn.js.
+     B5（2026-09-30 工单 P2）：「组」概念已退役，按钮文案改「再学 N 词」（N = daily_goal，js/app.js 收到
+     stw:checkin-done 时按 detail.goal 动态覆写；此处 10 只是静态初值） -->
+<div class="auth" id="checkinModal" hidden role="dialog" aria-modal="true" aria-label="今日打卡完成">
+  <div class="auth-card">
+    <h3>今日打卡完成</h3>
+    <p class="checkin-stats" id="checkinStats"></p>
+    <button type="button" class="auth-btn" id="checkinExtra">再学 10 词</button>
+    <button type="button" class="auth-alt" id="checkinExit">退出</button>
+  </div>
+</div>
+
+<!-- review quiz modal (docs/learn-mode.md §4 W3): 30s 试听唱完弹四选一"这个词的意思是？"；
+     js/review.js 派 'stw:quiz-show' {word, options} → app.js 把词写进 #quizWord、把 4 个
+     button.quiz-opt 填进 #quizOpts（本块只出骨架，接线在 app.js 侧的后续阶段）。
+     P1→P4（2026-10-01 掌控感工单定稿）：学习门答后 600/1200ms 染色即收卡（前进在键行「下一词」）；
+     复习测验同款收卡，前进并入复习键行（答完词后 答题/跳过/重学 都向前，答题=主前进）；
+     #quizNext 仅学习 recap 回炉用（弹层停留款）-->
+<div class="auth" id="quizModal" hidden tabindex="-1" role="dialog" aria-modal="true" aria-label="词汇测验：选出这个词的意思">
+  <div class="auth-card">
+    <b class="quiz-word" id="quizWord"></b>
+    <p class="quiz-ask">这个词的意思是？</p>
+    <div class="quiz-opts" id="quizOpts" role="group" aria-label="四个释义选项"></div>
+    <button type="button" class="auth-btn" id="quizNext" hidden>下一词</button>
+  </div>
+</div>
+
+<!-- flashback challenge card (qa_journey_user_view_0930/flashback/REQ.md)：学习会话内每 2 词计学后的
+     听音辨词形小卡——侧滑入场、必答（无关闭钮、点卡片外不关闭）。
+     P14（2026-10-01 用户定调）：触发时机改在「下一词」点击——点下一词一般直接跳，攒到闪回点则先弹卡、
+     答完才放行到下一词；重播自然播完的自动推进不抽闪回（advanceAfterGate(drainFlash) 分流）。
+     P15：弹卡即派 stw:stop 停主音轨（点击时机可在片段播放中，双音轨重叠）——
+     与 #quizModal 明确区分（不套 .auth 全屏类）；选项复用 button.quiz-opt（与 U1 同款染色/风格）；
+     多 clip 词答后 #flashFrom 露出「来自另一首：歌名」。接线：js/flashback.js 派 stw:flash-*，
+     js/wiring.js 填 #flashOpts 与染色。
+     F2（2026-10-01 用户反馈）：播完整片段（不再 2s 截停；三改定调与词卡同窗口——逐 clip 复刻
+     L.start−1.2s → 下行尾+0.4s、≤20s、≤试听尾的双截断，音频到窗尾自动停）；左上角喇叭位即重播钮（点按重听，
+     二次定调：独立胶囊丑，收进喇叭位）；答后 #flashLyric 在选项上方亮歌词行（目标词 .xw 粉底
+     高亮与歌词页同款；取含目标词的最近歌词行，间奏空行不误选） -->
+<div class="flash" id="flashModal" hidden tabindex="-1" role="dialog" aria-modal="true" aria-label="闪回挑战：听音选出刚听的词">
+  <div class="flash-card">
+    <div class="flash-head">
+      <p class="quiz-tag" id="flashTag" hidden>闪回胶囊</p>
+      <button type="button" class="flash-ico flash-replay" id="flashReplay" title="重播——没听清就再来一遍"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5 6.8 9H3.8v6h3l4.2 3.5v-13z" fill="currentColor" stroke="none"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18.4 6.4a8 8 0 0 1 0 11.2"/></svg></button>
+    </div>
+    <p class="flash-ask" id="flashAsk">刚听的这个词是？</p>
+    <p class="flash-lyric" id="flashLyric" hidden></p>
+    <div class="quiz-opts" id="flashOpts" role="group" aria-label="四个词形选项"></div>
+    <p class="flash-from" id="flashFrom" hidden></p>
+  </div>
+</div>
+
+<!-- review reveal card (docs/learn-mode.md §4 手动三键)：[重学]/[跳过] 立刻亮释义——词 + 释义一行，
+     1.8s 后 review.js 派 stw:quiz-close 收卡前进（app.js 同一监听收 quiz 与 reveal）。
+     W5（2026-09-30 工单，AC-A5）：本层无任何可交互控件、由 stw:quiz-close 自动收起，不满足「需要
+     焦点陷阱」的前提——降级为普通 role="dialog"、移除 aria-modal，不再宣称一个不存在的背景惰性契约。
+     js/a11y.js 只扫 [aria-modal="true"]，本层天然不参与陷阱、不抢焦点；显隐仍走 stw:quiz-close -->
+<div class="auth" id="revealModal" hidden role="dialog" aria-label="释义">
+  <div class="auth-card">
+    <b class="quiz-word" id="revealWord"></b>
+    <p class="reveal-meaning" id="revealMeaning"></p>
+  </div>
+</div>
+
+<!-- review summary card (docs/learn-mode.md §4 W3): h3「复习完成」+ 副标题「共 N 词 · 答对 x」（非零段
+     追加 答错/重学/跳过，2026-09-29 口径）；[再来一轮]/[退出] 由 app.js
+     先收卡再派 stw:review-extra / stw:review-exit（状态机在 js/review.js）；文案位复用 .checkin-stats，不新增类。
+     B5（2026-09-30 工单 P2）：组概念退役，复习侧按钮「再来一组」→「再来一轮」（复习语义是换盐重抽一轮，
+     内部命名 extraReview / track 事件 review-extra 保留不动，保分析连续性）。
+     R1（2026-10-01 用户反馈）：remaining=期初到期数-答对数，为 0 时不再给重练钮，改显
+     「没有可以复习的了」；有余词时按钮文案「把错题重答一下 · 还剩 N 词」（P6 2026-10-01
+     用户定调：错题重答语义替换「再来一轮」）。
+     P7（2026-10-01 用户反馈：连错别死循环）：重练轮次上限 2（review.js MAX_GROUPS）——
+     第 2 轮总结不再给钮，显「今天先到这里，明天再来一遍」（答错的词 next_due 已归当日，
+     明日自然再来）。
+     P10（2026-10-01 用户反馈）：答后自动重播本词片段（settleQuiz→__stwLearnGo 重开），播完
+     已答词 clip-ended→advance 自动前进；键行状态互换——答题换普通灰底（P11：不保留渐变，
+     避免同屏双主色）、下一词升渐变主钮。
+     P17→P18/P19（2026-10-01 用户定调）：错题回炉退役（quiz 弹层款拆除），错题并入胶囊管线——
+     学习门答错的词经 enqueueWrong 进 FIFO 队列（ready:false），**不随答错当次弹出**：下一次
+     点「下一词」直接跳，错题胶囊隔一次点击才就绪弹出（P19：避免刚错就补考）；「错题胶囊/
+     闪回胶囊」#flashTag 标签区分（stw:flash-show detail.type）；错题词不再被闪回重复抽取
+     （pickCandidate 跳过队列成员）；每 2 词的闪回胶囊当次就绪，同队列 FIFO-->
+<div class="auth" id="reviewSummaryModal" hidden role="dialog" aria-modal="true" aria-label="复习完成">
+  <div class="auth-card">
+    <h3>复习完成</h3>
+    <p class="checkin-stats" id="reviewSummaryStats"></p>
+    <p class="checkin-stats" id="reviewSummaryNone" hidden>没有可以复习的了</p>
+    <button type="button" class="auth-btn" id="reviewExtraBtn">把错题重答一下</button>
+    <button type="button" class="auth-alt" id="reviewExitBtn">退出</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-label="分享图片">
+  <div class="sheet-card">
+    <p class="busy" id="sheetBusy">正在生成分享图…</p>
+    <img id="sheetImg" alt="分享图预览" hidden>
+    <div class="sheet-actions">
+      <button type="button" id="shareSave">保存图片</button>
+      <button type="button" class="primary" id="shareNative">分享</button>
+      <button type="button" id="shareClose">关闭</button>
+    </div>
+    <p class="sheet-hint" id="sheetHint">手机上也可以长按图片保存</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script type="module" src="./js/main.js?v=staging-767b940"></script>
+
+
+
+</body>
+</html>
