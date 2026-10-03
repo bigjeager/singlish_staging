@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords } from './plan-api.js?v=staging-767b940';
-import { trial } from './bank.js?v=staging-767b940';
-import { track } from './track.js?v=staging-767b940';
-import { renderViz } from './home-viz.js?v=staging-767b940';
+import { getPlan, getCheckins, getUserWords } from './plan-api.js?v=staging-e9608d2';
+import { trial } from './bank.js?v=staging-e9608d2';
+import { track } from './track.js?v=staging-e9608d2';
+import { renderViz } from './home-viz.js?v=staging-e9608d2';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -166,6 +166,17 @@ function renderLearnCard(userRows, checkinRows) {
   if (btn) btn.textContent = done === 0 ? '开始学习' : done < goal ? '继续学习' : `再学 ${goal} 词`;
 }
 
+function reviewEmptyCopy() {
+  const todayNew = Array.isArray(lastUserRows) ? countTodayLearned(lastUserRows, today()) : 0;
+  let returned = false;
+  try { returned = localStorage.getItem('stw.returned') === '1'; } catch {}
+  const learned = readDone().length > 0;
+  return todayNew > 0 ? `今日新增 ${todayNew} · 明日起陆续复习`
+    : learned ? '明日有词来复习'
+    : returned ? '登录后你的复习计划会接着来'
+    : '还没学过词——先去学第一批吧';
+}
+
 function renderReviewCard() {
   const n = el('homeReviewNum'), btn = el('homeReviewBtn'), newEl = el('homeReviewNew');
   const pending = pendingWords(lastUserRows, today());
@@ -176,14 +187,7 @@ function renderReviewCard() {
 
   if (newEl) {
     if (cnt > 0) { newEl.hidden = true; newEl.textContent = ''; return; }
-    const todayNew = Array.isArray(lastUserRows) ? countTodayLearned(lastUserRows, today()) : 0;
-    let returned = false;
-    try { returned = localStorage.getItem('stw.returned') === '1'; } catch {}
-    const learned = readDone().length > 0;
-    newEl.textContent = todayNew > 0 ? `今日新增 ${todayNew} · 明日可复习`
-      : learned ? '明日有词来复习'
-      : returned ? '登录后你的复习计划会接着来'
-      : '还没学过词——先去学第一批吧';
+    newEl.textContent = reviewEmptyCopy();
     newEl.hidden = false;
   }
 }
@@ -218,7 +222,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-767b940') : import('./review.js?v=staging-767b940')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-e9608d2') : import('./review.js?v=staging-e9608d2')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
@@ -238,21 +242,9 @@ async function onLearn() {
   (await load('learn'))?.startLearn();
 }
 
-function tomorrowStr() {
-  const d = new Date(); d.setDate(d.getDate() + 1);
-  const p = n => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
-}
-
 function nudgeReviewCard() {
-  const tm = tomorrowStr();
-  let n = 0;
-  for (const r of Array.isArray(lastUserRows) ? lastUserRows : []) if (r && r.next_due === tm) n++;
-  const newEl = el('homeReviewNew'), card = el('homeReviewCard');
-  if (newEl) {
-    newEl.textContent = n > 0 ? `明日 ${n} 词待复习` : '最近没有到期词，先学新词';
-    newEl.hidden = false;
-  }
+  const newEl = el('homeReviewNew');
+  if (newEl) { newEl.textContent = reviewEmptyCopy(); newEl.hidden = false; }
   pulseReviewCard();
 }
 

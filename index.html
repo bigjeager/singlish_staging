@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-767b940">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-767b940">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-767b940">
-  <link rel="stylesheet" href="./css/home.css?v=staging-767b940">
+<link rel="stylesheet" href="./css/base.css?v=staging-e9608d2">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-e9608d2">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-e9608d2">
+  <link rel="stylesheet" href="./css/home.css?v=staging-e9608d2">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -157,7 +157,9 @@
         <p class="home-review-num"><b id="homeReviewNum">--</b><span>词待巩固</span></p>
         <!-- W1（2026-09-30 工单）：复习卡 0 待巩固时的次级预览——P3 SRS 把新词 next_due 播种到明天，
              当天刚学的词不在复习池里，复习卡只剩「0」会让用户以为"我没学到东西"。本行补一句
-             「今日新增 N · 明日可复习」，把「学过了、明天来巩固」讲清楚。hidden 由 home.js 切 -->
+             「今日新增 N · 明日起陆续复习」，把「学过了、之后来巩固」讲清楚。hidden 由 home.js 切；
+             fix/review-card-copy-consistency：点击 nudge 与本行共用 reviewEmptyCopy 同一口径
+             （闪回答对会把部分词 next_due 升档到后天，故不再承诺「明日全部可复习」） -->
         <p class="home-review-new" id="homeReviewNew" hidden></p>
         <button type="button" class="home-card-btn is-grad" id="homeReviewBtn" hidden>开始复习</button>
       </div>
@@ -253,7 +255,7 @@
 </div>
 
 <!-- profile card (docs/user-profile.md §3.2); behavior lives in js/profile.js -->
-<div class="auth" id="profileModal" hidden role="dialog" aria-modal="true" aria-label="个人资料">
+<div class="auth" id="profileModal" hidden role="dialog" aria-modal="true" aria-label="个人资料" data-no-input-focus>
   <div class="auth-card profile-card">
     <button type="button" class="auth-x" id="profileClose" aria-label="关闭">×</button>
     <span class="profile-avatar" id="profileAvatar" aria-hidden="true"></span>
@@ -441,7 +443,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-767b940"></script>
+<script type="module" src="./js/main.js?v=staging-e9608d2"></script>
 
 
 

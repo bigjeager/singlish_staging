@@ -28,7 +28,7 @@ function visibleTrap() {
 
 function initialFocus(t) {
   const f = tabStops(t.modal);
-  const input = f.find(el => el.matches('input,select,textarea'));
+  const input = t.modal.hasAttribute('data-no-input-focus') ? null : f.find(el => el.matches('input,select,textarea'));
   if (input) return input;
   const head = [...t.modal.querySelectorAll('h1,h2,h3,h4,h5')].find(h => h.getAttribute('tabindex') === '-1' && !h.closest('[hidden]'));
   if (head) return head;

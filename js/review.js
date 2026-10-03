@@ -1,5 +1,5 @@
-import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-767b940';
-import { track } from './track.js?v=staging-767b940';
+import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-e9608d2';
+import { track } from './track.js?v=staging-e9608d2';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -201,7 +201,7 @@ let advanceTimer = 0;
 
 let learnMod = null;
 async function learn() {
-  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-767b940'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
+  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-e9608d2'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
   return learnMod;
 }
 

@@ -1,4 +1,4 @@
-import { AUTH_CONFIG } from './config.js?v=staging-767b940';
+import { AUTH_CONFIG } from './config.js?v=staging-e9608d2';
 
 (() => {
 const KEY = 'stw.auth.session';
@@ -62,7 +62,7 @@ async function hydrate() {
 function fill() {
   genre = savedGenre;
   avatarLg.innerHTML = discHtml();
-  nameInput.value = savedName;
+  nameInput.value = savedName || handle();
   nameInput.placeholder = '如：' + handle();
   mailEl.textContent = '@' + handle();
   errEl.textContent = '';
@@ -78,7 +78,7 @@ let closing = false, closeT = 0;
 function openCard() {
 
   if (closing) { clearTimeout(closeT); closing = false; modal.classList.remove('g6-out'); }
-  fill(); modal.hidden = false; nameInput.focus();
+  fill(); modal.hidden = false;
 }
 function closeCard() {
 
@@ -221,7 +221,7 @@ window.__stwPlanProfileEnter = () => {
   if (!planPicker || !planName) return;
   genre = savedGenre;
   planPicker.innerHTML = pickerHtml();
-  planName.value = savedName;
+  planName.value = savedName || handle();
   planName.placeholder = '如：' + handle();
   planName.focus();
 };

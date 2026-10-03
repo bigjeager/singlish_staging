@@ -1,11 +1,11 @@
-import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-767b940';
-import { store, isMobile } from './util.js?v=staging-767b940';
-import { track } from './track.js?v=staging-767b940';
-import { loadLyrics } from './lyrics.js?v=staging-767b940';
-import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-767b940';
-import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-767b940';
-import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-767b940';
-import { openShare } from './share.js?v=staging-767b940';
+import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-e9608d2';
+import { store, isMobile } from './util.js?v=staging-e9608d2';
+import { track } from './track.js?v=staging-e9608d2';
+import { loadLyrics } from './lyrics.js?v=staging-e9608d2';
+import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-e9608d2';
+import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-e9608d2';
+import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-e9608d2';
+import { openShare } from './share.js?v=staging-e9608d2';
 
 function $(s) { return document.querySelector(s); }
 

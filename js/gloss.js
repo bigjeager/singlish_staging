@@ -1,5 +1,5 @@
-import { DATA } from './bank.js?v=staging-767b940';
-import { esc } from './util.js?v=staging-767b940';
+import { DATA } from './bank.js?v=staging-e9608d2';
+import { esc } from './util.js?v=staging-e9608d2';
 
 let glossTimer = 0;
 
