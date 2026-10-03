@@ -1,11 +1,9 @@
-import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-e9608d2';
-import { track } from './track.js?v=staging-e9608d2';
+import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-1da02c2';
+import { track } from './track.js?v=staging-1da02c2';
 
 const KEY = 'stw.auth.session';
-const DONE_KEY = 'stw.done';
 const LIMIT = 10;
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
-const readDone = () => { try { const v = JSON.parse(localStorage.getItem(DONE_KEY)); return Array.isArray(v) ? v : []; } catch { return []; } };
 
 function fnv1a(str) {
   let h = 0x811c9dc5;
@@ -43,7 +41,7 @@ function today() {
 
 async function reviewableWords(uid) {
   const rows = await getUserWords(uid);
-  if (!Array.isArray(rows)) { boxMap = new Map(); return readDone(); }
+  if (!Array.isArray(rows)) { boxMap = new Map(); console.warn('review: user_words unavailable — review aborted'); return []; }
   const t = today(), out = [];
   boxMap = new Map();
   for (const r of rows) {
@@ -201,7 +199,7 @@ let advanceTimer = 0;
 
 let learnMod = null;
 async function learn() {
-  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-e9608d2'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
+  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-1da02c2'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
   return learnMod;
 }
 

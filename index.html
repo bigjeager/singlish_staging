@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-e9608d2">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-e9608d2">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-e9608d2">
-  <link rel="stylesheet" href="./css/home.css?v=staging-e9608d2">
+<link rel="stylesheet" href="./css/base.css?v=staging-1da02c2">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-1da02c2">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-1da02c2">
+  <link rel="stylesheet" href="./css/home.css?v=staging-1da02c2">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -115,7 +115,7 @@
      与 .browser 面板同机制的全屏视图：默认 display:none，.open 显示（css/home.css）；
      z-index 45——高于内容（header 20 / 播放器 30 / 词表面板 40），低于 .auth 弹层（56）。
      本块只出骨架，接线在 js/home.js（后续阶段）：id 即契约，改一个字母就断一条腿 -->
-<section class="home" id="homeView" aria-label="首页">
+<section class="home open" id="homeView" aria-label="首页">
   <div class="home-in">
 
     <!-- 精简头：logo（点击关首页，接线在 home.js）+ 登录位。#homeAuth 是占位——home.js 往里放
@@ -443,7 +443,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-e9608d2"></script>
+<script type="module" src="./js/main.js?v=staging-1da02c2"></script>
 
 
 

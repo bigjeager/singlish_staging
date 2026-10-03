@@ -1,4 +1,4 @@
-import { AUTH_CONFIG } from './config.js?v=staging-e9608d2';
+import { AUTH_CONFIG } from './config.js?v=staging-1da02c2';
 
 (() => {
 const KEY = 'stw.auth.session';
@@ -231,4 +231,16 @@ window.__stwPlanProfileCommit = name => {
   if (clean.length > 20) return;
   saveProfile(clean).catch(() => {});
 };
+
+{
+  const s = read();
+  if (s?.access_token && (s.expires_at ?? 0) > Date.now() / 1000 + 30) {
+    userId = s.user_id || null;
+    email = s.email || '';
+    username = s.username || '';
+    genre = savedGenre = GENRES[hashIndex(userId)];
+    renderHeader();
+    hydrate();
+  }
+}
 })();

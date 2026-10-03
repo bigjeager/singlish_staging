@@ -1,8 +1,8 @@
-import { DATA, idxOf, ensureDetail } from './bank.js?v=staging-e9608d2';
-import { parseLrc } from './lyrics.js?v=staging-e9608d2';
-import { esc } from './util.js?v=staging-e9608d2';
-import { getUserWords, saveSrsState } from './plan-api.js?v=staging-e9608d2';
-import { LADDER, addDays } from './review.js?v=staging-e9608d2';
+import { DATA, idxOf, ensureDetail } from './bank.js?v=staging-1da02c2';
+import { parseLrc } from './lyrics.js?v=staging-1da02c2';
+import { esc } from './util.js?v=staging-1da02c2';
+import { getUserWords, saveSrsState } from './plan-api.js?v=staging-1da02c2';
+import { LADDER, addDays } from './review.js?v=staging-1da02c2';
 
 const FLASH_KEY = 'stw.flash.day';
 const LRC_MS = 10000;

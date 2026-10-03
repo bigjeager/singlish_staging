@@ -1,13 +1,11 @@
-import { getPlan, getCheckins, getUserWords } from './plan-api.js?v=staging-e9608d2';
-import { trial } from './bank.js?v=staging-e9608d2';
-import { track } from './track.js?v=staging-e9608d2';
-import { renderViz } from './home-viz.js?v=staging-e9608d2';
+import { getPlan, getCheckins, getUserWords } from './plan-api.js?v=staging-1da02c2';
+import { trial } from './bank.js?v=staging-1da02c2';
+import { track } from './track.js?v=staging-1da02c2';
+import { renderViz } from './home-viz.js?v=staging-1da02c2';
 
 const KEY = 'stw.auth.session';
-const DONE_KEY = 'stw.done';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
-const readDone = () => { try { const v = JSON.parse(localStorage.getItem(DONE_KEY)); return Array.isArray(v) ? v : []; } catch { return []; } };
 const el = id => (typeof document === 'undefined' ? null : document.getElementById(id));
 const logged = () => { const s = read(); return !!(s?.access_token && s?.user_id); };
 
@@ -167,20 +165,22 @@ function renderLearnCard(userRows, checkinRows) {
 }
 
 function reviewEmptyCopy() {
+  if (!logged()) {
+    let returned = false;
+    try { returned = localStorage.getItem('stw.returned') === '1'; } catch {}
+    return returned ? '登录后你的复习计划会接着来' : '登录后解锁复习——学习记录会保存';
+  }
   const todayNew = Array.isArray(lastUserRows) ? countTodayLearned(lastUserRows, today()) : 0;
-  let returned = false;
-  try { returned = localStorage.getItem('stw.returned') === '1'; } catch {}
-  const learned = readDone().length > 0;
+  const learned = Array.isArray(lastUserRows) && lastUserRows.some(r => r?.learned_at);
   return todayNew > 0 ? `今日新增 ${todayNew} · 明日起陆续复习`
     : learned ? '明日有词来复习'
-    : returned ? '登录后你的复习计划会接着来'
     : '还没学过词——先去学第一批吧';
 }
 
 function renderReviewCard() {
   const n = el('homeReviewNum'), btn = el('homeReviewBtn'), newEl = el('homeReviewNew');
-  const pending = pendingWords(lastUserRows, today());
-  const cnt = pending === null ? readDone().length : pending.length;
+  const pending = logged() ? pendingWords(lastUserRows, today()) : [];
+  const cnt = pending === null ? 0 : pending.length;
   lastPending = cnt;
   if (n) n.textContent = String(cnt);
   if (btn) btn.hidden = cnt === 0;
@@ -222,7 +222,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-e9608d2') : import('./review.js?v=staging-e9608d2')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-1da02c2') : import('./review.js?v=staging-1da02c2')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
@@ -268,7 +268,7 @@ function nudgeNeverLearned() {
 async function onReview() {
   const s = read();
   if (!s?.access_token || !s?.user_id) { promptLogin('review'); return; }
-  if (readDone().length === 0) { nudgeNeverLearned(); return; }
+  if (Array.isArray(lastUserRows) && !lastUserRows.some(r => r?.learned_at)) { nudgeNeverLearned(); return; }
   if (lastPending === 0) { nudgeReviewCard(); return; }
   close();
   (await load('review'))?.startReview();

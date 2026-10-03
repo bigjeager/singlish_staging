@@ -1,5 +1,5 @@
-import { AUTH_CONFIG } from './config.js?v=staging-e9608d2';
-import { track } from './track.js?v=staging-e9608d2';
+import { AUTH_CONFIG } from './config.js?v=staging-1da02c2';
+import { track } from './track.js?v=staging-1da02c2';
 
 (() => {
 const KEY = 'stw.auth.session';
@@ -244,7 +244,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hid
 const WHY = {
   review: '登录后解锁复习——学习记录会保存，换设备也不丢',
   fav: '登录后才能收藏生词本',
-  deeplink: '这个词在完整版里，登录后解锁全部 100 词',
+  deeplink: '这个词在完整版里，登录后解锁全部词库',
   learn: '登录后开始学习——进度自动保存，每天接着学',
   plan: '设置学习计划需要先登录'
 };
@@ -366,7 +366,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && welcome &&
 $('welcomeLogin')?.addEventListener('click', () => { if (welcome) welcome.hidden = true; openAuth('welcome'); });
 
 window.__stwAuthReady = (async () => {
-  await 0;
+  await new Promise(r => setTimeout(r, 0));
   const s = read();
   if (!s) { emitAuth(false, null, null, null); return; }
   if (!stale(s)) bootSync();
@@ -377,6 +377,6 @@ window.__stwAuthReady = (async () => {
     save(ns); setBtnUser(nameOf(ns));
     withUser(d.user?.id); bootSync();
     emitAuth(true, ns.email, read()?.user_id, nameOf(ns));
-  } catch { clear(); emitAuth(false, null, null, null); }
+  } catch { clear(); setBtnUser('登录'); emitAuth(false, null, null, null); }
 })();
 })();

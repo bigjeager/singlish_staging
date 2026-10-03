@@ -1,6 +1,6 @@
-import { AUTH_CONFIG } from './config.js?v=staging-e9608d2';
-import { getWordClips } from './plan-api.js?v=staging-e9608d2';
-import { store, useClip, expand } from './util.js?v=staging-e9608d2';
+import { AUTH_CONFIG } from './config.js?v=staging-1da02c2';
+import { getWordClips } from './plan-api.js?v=staging-1da02c2';
+import { store, useClip, expand } from './util.js?v=staging-1da02c2';
 
 export { useClip };
 
@@ -11,7 +11,7 @@ export function setData(list) { DATA = list; }
 
 export const state = { dict: store.get('stw.dict', 'all'), cur: 0, loop: false, shuffle: store.get('stw.shuffle', false), done: new Set(store.get('stw.done', [])), fav: new Set(store.get('stw.fav', [])), started: false };
 
-const GUEST = !!AUTH_CONFIG.url && !!AUTH_CONFIG.anonKey && !localStorage.getItem('stw.auth.session') && !state.done.size && !state.fav.size && localStorage.getItem('stw.onboard') !== 'user';
+const GUEST = !!AUTH_CONFIG.url && !!AUTH_CONFIG.anonKey && !localStorage.getItem('stw.auth.session') && localStorage.getItem('stw.onboard') !== 'user';
 document.body.classList.toggle('guest', GUEST);
 export let trial = GUEST;
 export function setTrial(v) { trial = v; }
