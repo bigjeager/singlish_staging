@@ -1,12 +1,14 @@
-import { AUTH_CONFIG } from './config.js?v=staging-1da02c2';
-import { getWordClips } from './plan-api.js?v=staging-1da02c2';
-import { store, useClip, expand } from './util.js?v=staging-1da02c2';
+import { AUTH_CONFIG } from './config.js?v=staging-9783eec';
+import { getWordClips } from './plan-api.js?v=staging-9783eec';
+import { store, useClip, expand } from './util.js?v=staging-9783eec';
 
 export { useClip };
 
 export let ALL = [];
 export let DATA = [];
-export function setAll(list) { ALL = list; if (Array.isArray(ALL)) ALL.forEach((e, i) => { e.no = i + 1; }); }
+let resolveBankReady = () => {};
+export const bankReady = new Promise(r => { resolveBankReady = r; });
+export function setAll(list) { ALL = list; if (Array.isArray(ALL)) ALL.forEach((e, i) => { e.no = i + 1; }); resolveBankReady(); }
 export function setData(list) { DATA = list; }
 
 export const state = { dict: store.get('stw.dict', 'all'), cur: 0, loop: false, shuffle: store.get('stw.shuffle', false), done: new Set(store.get('stw.done', [])), fav: new Set(store.get('stw.fav', [])), started: false };

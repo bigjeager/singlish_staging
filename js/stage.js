@@ -1,6 +1,6 @@
-import { ALL, DATA, state } from './bank.js?v=staging-1da02c2';
-import { DICT_NAME, esc, pad } from './util.js?v=staging-1da02c2';
-import { P, deferAdvance } from './player.js?v=staging-1da02c2';
+import { ALL, DATA, state } from './bank.js?v=staging-9783eec';
+import { DICT_NAME, esc, pad } from './util.js?v=staging-9783eec';
+import { P, deferAdvance } from './player.js?v=staging-9783eec';
 
 export const grid = document.querySelector('#grid');
 export const deskStage = document.querySelector('#deskStage');

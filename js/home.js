@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords } from './plan-api.js?v=staging-1da02c2';
-import { trial } from './bank.js?v=staging-1da02c2';
-import { track } from './track.js?v=staging-1da02c2';
-import { renderViz } from './home-viz.js?v=staging-1da02c2';
+import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-9783eec';
+import { trial, bankReady } from './bank.js?v=staging-9783eec';
+import { track } from './track.js?v=staging-9783eec';
+import { renderViz } from './home-viz.js?v=staging-9783eec';
 
 const KEY = 'stw.auth.session';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
@@ -60,6 +60,7 @@ let renderToken = 0;
 let lastAuth = null;
 let lastRows = null;
 let lastUserRows = null;
+let lastProg = null;
 let lastPending = -1;
 let nudgeT = 0;
 
@@ -92,17 +93,18 @@ async function render() {
   renderGreet();
   const on = logged(), uid = read()?.user_id;
   lastAuth = on;
-  let p = null, rows = null, userRows = null;
-  if (on) [p, rows, userRows] = await Promise.all([getPlan(uid), getCheckins(uid), getUserWords(uid)]);
+  let p = null, rows = null, userRows = null, prog = null;
+  if (on) [p, rows, userRows, prog] = await Promise.all([getPlan(uid), getCheckins(uid), getUserWords(uid), getHomeProgress(uid)]);
   if (tk !== renderToken) return;
   plan = on ? (p || plan) : null;
   lastRows = rows;
   lastUserRows = userRows;
+  lastProg = prog;
   renderStreak(rows, on);
   renderLearnCard(userRows, rows);
   renderReviewCard();
   renderPlanRow(on);
-  renderViz(userRows, rows, plan, on);
+  renderViz(userRows, rows, plan, on, prog);
 }
 
 function renderGreet() {
@@ -222,7 +224,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-1da02c2') : import('./review.js?v=staging-1da02c2')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-9783eec') : import('./review.js?v=staging-9783eec')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
@@ -239,6 +241,7 @@ async function onLearn() {
   }
   plan = p;
   close();
+  await bankReady;
   (await load('learn'))?.startLearn();
 }
 
@@ -271,6 +274,7 @@ async function onReview() {
   if (Array.isArray(lastUserRows) && !lastUserRows.some(r => r?.learned_at)) { nudgeNeverLearned(); return; }
   if (lastPending === 0) { nudgeReviewCard(); return; }
   close();
+  await bankReady;
   (await load('review'))?.startReview();
 }
 
@@ -309,14 +313,14 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     renderToken++;
     renderPlanRow(logged());
     renderLearnCard(lastUserRows, lastRows);
-    renderViz(lastUserRows, lastRows, plan, logged());
+    renderViz(lastUserRows, lastRows, plan, logged(), lastProg);
   });
 
   window.addEventListener('stw:bank-ready', () => {
     renderPlanRow(logged());
     renderLearnCard(lastUserRows, lastRows);
     renderReviewCard();
-    renderViz(lastUserRows, lastRows, plan, logged());
+    renderViz(lastUserRows, lastRows, plan, logged(), lastProg);
   });
 
   window.addEventListener('stw:auth', e => {

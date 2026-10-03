@@ -1,4 +1,4 @@
-import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-1da02c2';
+import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-9783eec';
 
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
@@ -44,8 +44,8 @@ function dictWords(dict) {
   return new Set(ALL.filter(e => inDict(e, dict || 'all')).map(e => e.word));
 }
 
-export function renderViz(userRows, checkinRows, plan, loggedIn) {
-  lastArgs = [userRows, checkinRows, plan, loggedIn];
+export function renderViz(userRows, checkinRows, plan, loggedIn, prog) {
+  lastArgs = [userRows, checkinRows, plan, loggedIn, prog];
   const card = el('homeViz');
   if (!card) return;
   const show = !!loggedIn && !trial;
@@ -57,7 +57,7 @@ export function renderViz(userRows, checkinRows, plan, loggedIn) {
   [dayCount, reviewCount] = countsByDay(userRows);
   checkinSet = new Set((Array.isArray(checkinRows) ? checkinRows : []).map(r => String(r?.day || '')));
   renderCheckins();
-  renderRing(plan);
+  renderRing(plan, prog);
   renderHeatmap();
   hideDetail();
 }
@@ -70,15 +70,22 @@ function renderCheckins() {
   ck.replaceChildren('累计打卡 ', n, ' 天');
 }
 
-function renderRing(plan) {
+function renderRing(plan, prog) {
   const pctEl = el('ringPct'), sub = el('ringSub'), cap = el('ringDict'), bar = el('ringBar');
   if (!pctEl || !bar) return;
   const dict = plan?.dict || 'all';
-  const set = dictWords(dict);
-  const total = set ? set.size : 0;
-  const learned = set ? userWords.filter(r => r?.learned_at && set.has(r.word)).length : 0;
+  let total = 0, learned = 0, fromProg = false;
+  if (prog?.totals && prog.totals[dict] != null) {
+    total = prog.totals[dict];
+    learned = prog.learned?.[dict] || 0;
+    fromProg = true;
+  } else {
+    const set = dictWords(dict);
+    total = set ? set.size : 0;
+    learned = set ? userWords.filter(r => r?.learned_at && set.has(r.word)).length : 0;
+  }
   const label = `${DICT_NAME[dict] || '全库'}词库`;
-  if (!total || (!trial && trialMeta.count > 0 && total === trialMeta.count)) {
+  if (!total || (!fromProg && !trial && trialMeta.count > 0 && total === trialMeta.count)) {
     pctEl.textContent = '--';
     if (sub) sub.textContent = '词库加载中';
     if (cap) cap.textContent = label;

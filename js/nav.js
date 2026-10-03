@@ -1,10 +1,10 @@
-import { ALL, DATA, setAll, setData, state, trial, inDict, fromMeta, stubify, ensureDetail, useClip, trialMeta } from './bank.js?v=staging-1da02c2';
-import { store, expand, isMobile, DICT_NAME, fmt } from './util.js?v=staging-1da02c2';
-import { getBankList } from './plan-api.js?v=staging-1da02c2';
-import { lyr, loadLyrics, fillLyrics } from './lyrics.js?v=staging-1da02c2';
-import { grid, deskStage, carousel, stageHTML, renderGrid, markCards, fillSlides, clearFilled } from './stage.js?v=staging-1da02c2';
-import { P, stop, currentRoot, play, cue, primeAudio, deferAdvance } from './player.js?v=staging-1da02c2';
-import { syncCarouselClose } from './wiring.js?v=staging-1da02c2';
+import { ALL, DATA, setAll, setData, state, trial, inDict, fromMeta, stubify, ensureDetail, useClip, trialMeta } from './bank.js?v=staging-9783eec';
+import { store, expand, isMobile, DICT_NAME, fmt } from './util.js?v=staging-9783eec';
+import { getBankList, readBankCache, saveBankCache, revalidateBank } from './plan-api.js?v=staging-9783eec';
+import { lyr, loadLyrics, fillLyrics } from './lyrics.js?v=staging-9783eec';
+import { grid, deskStage, carousel, stageHTML, renderGrid, markCards, fillSlides, clearFilled } from './stage.js?v=staging-9783eec';
+import { P, stop, currentRoot, play, cue, primeAudio, deferAdvance } from './player.js?v=staging-9783eec';
+import { syncCarouselClose } from './wiring.js?v=staging-9783eec';
 
 let suppressScroll = false, scrollT = 0;
 let sessionNav = false;
@@ -152,32 +152,19 @@ export function trialBlocked(w) {
   return true;
 }
 
-export async function rebuildBank() {
-  const list = await getBankList();
-  if (!list?.length) return;
-  setAll(list.map(fromMeta));
+export async function rebuildBank(list) {
+  const rows = list ?? await getBankList();
+  if (!rows?.length) return;
+  if (!list) saveBankCache(rows);
+  setAll(rows.map(fromMeta));
   applyDict(state.dict, DATA[state.cur]?.word || null);
+  const hw = decodeURIComponent(location.hash.slice(1));
+  const has = hw && ALL.some(e => e.word === hw && inDict(e, state.dict));
+  if (!activeSession() && hw && ALL.some(e => e.word === hw) && DATA[state.cur]?.word !== hw) applyDict(has ? state.dict : 'all', hw);
   window.dispatchEvent(new CustomEvent('stw:bank-ready'));
 }
 
-export async function bootBank() {
-  const sess = store.get('stw.auth.session', null);
-  let list = null;
-  if (sess) {
-    await Promise.race([window.__stwAuthReady ?? new Promise(r => setTimeout(r, 800)), new Promise(r => setTimeout(r, 800))]);
-    list = await getBankList();
-  }
-  if (list) setAll(list.map(fromMeta));
-  else {
-    try {
-      const r = await fetch('trial.json'); if (!r.ok) throw new Error('HTTP ' + r.status);
-      const tl = await r.json();
-      for (const e of tl) for (const c of e.clips) { c.preview = expand(c.preview); c.art = expand(c.art); c.appleUrl = expand(c.appleUrl); }
-      tl.forEach(e => { useClip(e, 0); stubify(e); });
-      trialMeta.count = tl.length;
-      setAll(tl);
-    } catch { setAll(null); }
-  }
+async function enterBank() {
   if (!ALL) { grid.innerHTML = '<p class="empty">词库加载失败，请检查网络后刷新。</p>'; return; }
   const dw = decodeURIComponent(initialHash.slice(1));
   if (trialBlocked(dw)) { applyDict('all', ALL[0]?.word); restoreHash(); return; }
@@ -190,4 +177,41 @@ export async function bootBank() {
   }
   const has = ALL.some(e => e.word === w && inDict(e, state.dict));
   applyDict(w && ALL.some(e => e.word === w) && !has ? 'all' : state.dict, w || null);
+}
+
+async function trialBank() {
+  try {
+    const r = await fetch('trial.json'); if (!r.ok) throw new Error('HTTP ' + r.status);
+    const tl = await r.json();
+    for (const e of tl) for (const c of e.clips) { c.preview = expand(c.preview); c.art = expand(c.art); c.appleUrl = expand(c.appleUrl); }
+    tl.forEach(e => { useClip(e, 0); stubify(e); });
+    trialMeta.count = tl.length;
+    setAll(tl);
+  } catch { setAll(null); }
+  await enterBank();
+  window.dispatchEvent(new CustomEvent('stw:bank-ready'));
+}
+
+export async function bootBank() {
+  const sess = store.get('stw.auth.session', null);
+  if (sess) {
+    const cached = readBankCache();
+    if (cached) {
+      setAll(cached.rows.map(fromMeta));
+      await enterBank();
+      revalidateBank(cached).then(rows => { if (rows && !state.started && !activeSession()) rebuildBank(rows); }).catch(() => {});
+      return;
+    }
+    (async () => {
+      const list = await getBankList();
+      if (list?.length) {
+        saveBankCache(list);
+        setAll(list.map(fromMeta));
+        await enterBank();
+        window.dispatchEvent(new CustomEvent('stw:bank-ready'));
+      } else await trialBank();
+    })().catch(() => {});
+    return;
+  }
+  await trialBank();
 }

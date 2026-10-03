@@ -1,4 +1,4 @@
-import { AUTH_CONFIG } from './config.js?v=staging-1da02c2';
+import { AUTH_CONFIG } from './config.js?v=staging-9783eec';
 
 const KEY = 'stw.auth.session';
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
@@ -71,6 +71,18 @@ export function getCheckins(userId) {
   });
 }
 
+export function getHomeProgress(userId) {
+  if (!usable()) return null;
+  return once('user_words:homeprog:' + userId, async () => {
+    try {
+      const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/rpc/home_progress`, { method: 'POST', headers: headers(), body: '{}' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const d = await res.json();
+      return d?.totals ? d : null;
+    } catch (err) { console.warn('plan-api: home progress failed:', err); return null; }
+  });
+}
+
 export function getUserWords(userId) {
   if (!usable()) return null;
   return once('user_words:' + userId, async () => {
@@ -121,20 +133,69 @@ export function getQuizPool() {
   return poolPromise;
 }
 
+const BANK_PAGE = 1000;
+const BANK_TTL = 24 * 3600e3;
+
+function bankVer(rows) {
+  const last = rows[rows.length - 1];
+  return `${rows.length}:${last?.id ?? -1}`;
+}
+
+export function readBankCache() {
+  try {
+    const c = JSON.parse(localStorage.getItem('stw.bank.v1'));
+    return c?.v && c.rows?.length && c.rows[0]?.meta?.c0 ? c : null;
+  } catch { return null; }
+}
+
+export function saveBankCache(rows) {
+  try { localStorage.setItem('stw.bank.v1', JSON.stringify({ v: bankVer(rows), t: Date.now(), rows })); } catch {}
+}
+
+async function bankPage(offset) {
+  const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id,word,meta&order=id&limit=${BANK_PAGE}&offset=${offset}`, { headers: headers() });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const page = await res.json();
+  if (!Array.isArray(page)) throw new Error('bad payload');
+  return page;
+}
+
 export async function getBankList() {
   if (!usable()) return null;
-  const PAGE = 500, rows = [];
   try {
-    for (let offset = 0; ; offset += PAGE) {
-      const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id,word,meta&order=id&limit=${PAGE}&offset=${offset}`, { headers: headers() });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const page = await res.json();
-      if (!Array.isArray(page)) throw new Error('bad payload');
-      rows.push(...page);
-      if (page.length < PAGE) break;
+    const head = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id,word,meta&order=id&limit=${BANK_PAGE}&offset=0`, { headers: { ...headers(), Prefer: 'count=exact' } });
+    if (!head.ok) throw new Error('HTTP ' + head.status);
+    const first = await head.json();
+    if (!Array.isArray(first)) throw new Error('bad payload');
+    const total = Number((head.headers.get('content-range') || '').split('/').pop());
+    if (!total) {
+      const rows = [...first];
+      for (let offset = BANK_PAGE; ; offset += BANK_PAGE) {
+        const page = await bankPage(offset);
+        rows.push(...page);
+        if (page.length < BANK_PAGE) break;
+      }
+      return rows;
     }
-    return rows;
+    const rest = [];
+    for (let offset = BANK_PAGE; offset < total; offset += BANK_PAGE) rest.push(bankPage(offset));
+    return first.concat(...await Promise.all(rest));
   } catch (err) { console.warn('plan-api: bank list load failed:', err); return null; }
+}
+
+export async function revalidateBank(cached) {
+  if (!usable() || !cached) return null;
+  try {
+    const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id&order=id.desc&limit=1`, { headers: { ...headers(), Prefer: 'count=exact' } });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    const v = Array.isArray(rows) ? `${Number((res.headers.get('content-range') || '').split('/').pop())}:${rows[0]?.id}` : null;
+    if (v && v === cached.v && Date.now() - (cached.t || 0) < BANK_TTL) return null;
+  } catch { return null; }
+  const fresh = await getBankList();
+  if (!fresh?.length) return null;
+  saveBankCache(fresh);
+  return fresh;
 }
 
 export async function getWordClips(word) {
