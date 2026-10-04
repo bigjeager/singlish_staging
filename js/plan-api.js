@@ -1,14 +1,28 @@
-import { AUTH_CONFIG } from './config.js?v=staging-0f52a63';
+import { AUTH_CONFIG } from './config.js?v=staging-77a4899';
 
 const KEY = 'stw.auth.session';
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
 
 const usable = () => !!(AUTH_CONFIG.url && AUTH_CONFIG.anonKey) && !!read()?.access_token;
-const headers = () => ({ 'Content-Type': 'application/json', apikey: AUTH_CONFIG.anonKey, Authorization: 'Bearer ' + read().access_token });
+
+async function headers() {
+  const tok = await (window.__stwFreshToken?.() ?? read()?.access_token);
+  const h = { 'Content-Type': 'application/json', apikey: AUTH_CONFIG.anonKey };
+  if (tok) h.Authorization = 'Bearer ' + tok;
+  return h;
+}
+
+async function send(path, opts = {}) {
+  const url = AUTH_CONFIG.url + path;
+  const fire = () => headers().then(h => fetch(url, { ...opts, headers: { ...opts.headers, ...h } }));
+  let res = await fire();
+  if (res.status === 401 && await (window.__stwRefreshSession?.(true) ?? false)) res = await fire();
+  return res;
+}
 
 async function getRow(path) {
   try {
-    const res = await fetch(AUTH_CONFIG.url + path, { headers: headers() });
+    const res = await send(path);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
@@ -17,9 +31,9 @@ async function getRow(path) {
 
 async function postRows(table, rows, upsert) {
   try {
-    const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/${table}`, {
+    const res = await send('/rest/v1/' + table, {
       method: 'POST',
-      headers: upsert ? { ...headers(), Prefer: 'resolution=merge-duplicates' } : headers(),
+      headers: upsert ? { Prefer: 'resolution=merge-duplicates' } : {},
       body: JSON.stringify(rows)
     });
     if (res.ok) bust(table);
@@ -63,7 +77,7 @@ export function getCheckins(userId) {
   if (!usable()) return null;
   return once('checkins:' + userId, async () => {
     try {
-      const res = await fetch(AUTH_CONFIG.url + `/rest/v1/checkins?user_id=eq.${encodeURIComponent(userId)}`, { headers: headers() });
+      const res = await send(`/rest/v1/checkins?user_id=eq.${encodeURIComponent(userId)}`);
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const rows = await res.json();
       return Array.isArray(rows) ? rows : [];
@@ -75,7 +89,7 @@ export function getHomeProgress(userId) {
   if (!usable()) return null;
   return once('user_words:homeprog:' + userId, async () => {
     try {
-      const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/rpc/home_progress`, { method: 'POST', headers: headers(), body: '{}' });
+      const res = await send('/rest/v1/rpc/home_progress', { method: 'POST', body: '{}' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const d = await res.json();
       return d?.totals ? d : null;
@@ -89,7 +103,7 @@ export function getUserWords(userId) {
     const rows = [];
     try {
       for (let offset = 0; ; offset += 1000) {
-        const res = await fetch(AUTH_CONFIG.url + `/rest/v1/user_words?user_id=eq.${encodeURIComponent(userId)}&select=word,learned_at,reviewed_at,last_correct,next_due,box&order=word&limit=1000&offset=${offset}`, { headers: headers() });
+        const res = await send(`/rest/v1/user_words?user_id=eq.${encodeURIComponent(userId)}&select=word,learned_at,reviewed_at,last_correct,next_due,box&order=word&limit=1000&offset=${offset}`);
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const page = await res.json();
         if (!Array.isArray(page)) throw new Error('bad payload');
@@ -153,7 +167,7 @@ export function saveBankCache(rows) {
 }
 
 async function bankPage(offset) {
-  const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id,word,meta&order=id&limit=${BANK_PAGE}&offset=${offset}`, { headers: headers() });
+  const res = await send(`/rest/v1/words?select=id,word,meta&order=id&limit=${BANK_PAGE}&offset=${offset}`);
   if (!res.ok) throw new Error('HTTP ' + res.status);
   const page = await res.json();
   if (!Array.isArray(page)) throw new Error('bad payload');
@@ -163,7 +177,7 @@ async function bankPage(offset) {
 export async function getBankList() {
   if (!usable()) return null;
   try {
-    const head = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id,word,meta&order=id&limit=${BANK_PAGE}&offset=0`, { headers: { ...headers(), Prefer: 'count=exact' } });
+    const head = await send(`/rest/v1/words?select=id,word,meta&order=id&limit=${BANK_PAGE}&offset=0`, { headers: { Prefer: 'count=exact' } });
     if (!head.ok) throw new Error('HTTP ' + head.status);
     const first = await head.json();
     if (!Array.isArray(first)) throw new Error('bad payload');
@@ -186,7 +200,7 @@ export async function getBankList() {
 export async function revalidateBank(cached) {
   if (!usable() || !cached) return null;
   try {
-    const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/words?select=id&order=id.desc&limit=1`, { headers: { ...headers(), Prefer: 'count=exact' } });
+    const res = await send('/rest/v1/words?select=id&order=id.desc&limit=1', { headers: { Prefer: 'count=exact' } });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rows = await res.json();
     const v = Array.isArray(rows) ? `${Number((res.headers.get('content-range') || '').split('/').pop())}:${rows[0]?.id}` : null;
@@ -201,9 +215,8 @@ export async function revalidateBank(cached) {
 export async function getWordClips(word) {
   if (!usable() || !word) return null;
   try {
-    const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/rpc/word_clips`, {
+    const res = await send('/rest/v1/rpc/word_clips', {
       method: 'POST',
-      headers: headers(),
       body: JSON.stringify({ w: word })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);

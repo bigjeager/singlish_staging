@@ -1,7 +1,7 @@
-import { DATA, idxOf } from './bank.js?v=staging-0f52a63';
-import { store, esc } from './util.js?v=staging-0f52a63';
-import { track } from './track.js?v=staging-0f52a63';
-import { loadLyrics } from './lyrics.js?v=staging-0f52a63';
+import { DATA, idxOf } from './bank.js?v=staging-77a4899';
+import { store, esc } from './util.js?v=staging-77a4899';
+import { track } from './track.js?v=staging-77a4899';
+import { loadLyrics } from './lyrics.js?v=staging-77a4899';
 
 const $ = s => document.querySelector(s);
 const SHARE_LINES = ['每个单词，都有一首歌', '听歌，顺便把单词背了', '唱过的词，忘不掉', '单曲循环过的歌词，想忘都难', '这首歌里，藏着一个考试词', '背单词这件事，终于不无聊了'];

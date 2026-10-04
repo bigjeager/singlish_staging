@@ -1,5 +1,5 @@
-import { AUTH_CONFIG } from './config.js?v=staging-0f52a63';
-import { track } from './track.js?v=staging-0f52a63';
+import { AUTH_CONFIG } from './config.js?v=staging-77a4899';
+import { track } from './track.js?v=staging-77a4899';
 
 (() => {
 const KEY = 'stw.auth.session';
@@ -271,6 +271,40 @@ const sameSet = (a, b) => a.size === b.size && [...a].every(w => b.has(w));
 
 const withUser = id => { const s = read(); if (s && id && !s.user_id) save({ ...s, user_id: id }); };
 
+let refreshP = null;
+function refreshSession(force) {
+  const s = read();
+  if (!s?.refresh_token) return Promise.resolve(false);
+  if (!force && !stale(s)) return Promise.resolve(true);
+  if (refreshP) return refreshP;
+  refreshP = call('/auth/v1/token?grant_type=refresh_token', { refresh_token: s.refresh_token })
+    .then(d => {
+      const cur = read();
+      if (!cur) return false;
+      save({ access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (d.expires_in || 3600), email: cur.email || d.user?.email || '', username: cur.username || d.user?.user_metadata?.username || '', user_id: cur.user_id || d.user?.id });
+      return true;
+    })
+    .catch(() => {
+      const cur = read();
+      if (cur?.access_token && cur.access_token !== s.access_token && !stale(cur)) return true;
+      clear(); setBtnUser('登录'); emitAuth(false, null, null, null);
+      return false;
+    })
+    .finally(() => { refreshP = null; });
+  return refreshP;
+}
+async function freshToken() {
+  const s = read();
+  if (!s?.access_token) return null;
+  if (!stale(s)) return s.access_token;
+  return (await refreshSession()) ? read()?.access_token || null : null;
+}
+window.__stwFreshToken = freshToken;
+window.__stwRefreshSession = refreshSession;
+const maybeRefresh = () => { const s = read(); if (s?.refresh_token && stale(s)) refreshSession(); };
+setInterval(maybeRefresh, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) maybeRefresh(); });
+
 async function restGet() {
   const s = read(), rows = [];
   for (let offset = 0; ; offset += 1000) {
@@ -369,14 +403,13 @@ window.__stwAuthReady = (async () => {
   await new Promise(r => setTimeout(r, 0));
   const s = read();
   if (!s) { emitAuth(false, null, null, null); return; }
-  if (!stale(s)) bootSync();
-  if (!stale(s)) { setBtnUser(nameOf(s)); emitAuth(true, s.email, s.user_id, nameOf(s)); return; }
-  try {
-    const d = await call('/auth/v1/token?grant_type=refresh_token', { refresh_token: s.refresh_token });
-    const ns = { access_token: d.access_token, refresh_token: d.refresh_token, expires_at: Math.floor(Date.now() / 1000) + (d.expires_in || 3600), email: s.email || d.user?.email || '', username: s.username || d.user?.user_metadata?.username || '' };
-    save(ns); setBtnUser(nameOf(ns));
-    withUser(d.user?.id); bootSync();
-    emitAuth(true, ns.email, read()?.user_id, nameOf(ns));
-  } catch { clear(); setBtnUser('登录'); emitAuth(false, null, null, null); }
+  if (!stale(s)) { setBtnUser(nameOf(s)); emitAuth(true, s.email, s.user_id, nameOf(s)); bootSync(); return; }
+  if (await refreshSession()) {
+    const ns = read();
+    setBtnUser(nameOf(ns));
+    withUser(ns.user_id);
+    bootSync();
+    emitAuth(true, ns.email, ns.user_id, nameOf(ns));
+  }
 })();
 })();
