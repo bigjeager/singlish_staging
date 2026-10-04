@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-ac923ae';
-import { trial, bankReady } from './bank.js?v=staging-ac923ae';
-import { track } from './track.js?v=staging-ac923ae';
-import { renderViz } from './home-viz.js?v=staging-ac923ae';
+import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-7ecf1b3';
+import { trial, bankReady } from './bank.js?v=staging-7ecf1b3';
+import { track } from './track.js?v=staging-7ecf1b3';
+import { renderViz } from './home-viz.js?v=staging-7ecf1b3';
 
 const KEY = 'stw.auth.session';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
@@ -225,10 +225,25 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-ac923ae') : import('./review.js?v=staging-ac923ae')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-7ecf1b3') : import('./review.js?v=staging-7ecf1b3')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
+}
+
+function learnBarText(goal, done) {
+  const over = Math.max(0, done - goal);
+  return `学习 ${Math.min(done, goal)}/${goal}` + (over > 0 ? `（+${over}）` : '');
+}
+function learnBarPct(goal, done) { return goal ? Math.min(100, done / goal * 100) : 0; }
+
+function previewSessionBar(text, pct) {
+  const row = el('learnRow'), status = el('learnStatus'), prog = el('learnProg'), btn = el('learnBtn');
+  if (!row || !status) return;
+  status.textContent = text;
+  if (prog) prog.style.width = pct.toFixed(1) + '%';
+  if (btn) btn.hidden = true;
+  row.hidden = false;
 }
 
 async function onLearn() {
@@ -241,6 +256,8 @@ async function onLearn() {
     return;
   }
   plan = p;
+  const done = Array.isArray(lastUserRows) ? countTodayLearned(lastUserRows, today()) : 0;
+  previewSessionBar(learnBarText(Number(p.daily_goal) || 0, done), learnBarPct(Number(p.daily_goal) || 0, done));
   close();
   await bankReady;
   (await load('learn'))?.startLearn();
@@ -274,6 +291,7 @@ async function onReview() {
   if (!s?.access_token || !s?.user_id) { promptLogin('review'); return; }
   if (Array.isArray(lastUserRows) && !lastUserRows.some(r => r?.learned_at)) { nudgeNeverLearned(); return; }
   if (lastPending === 0) { nudgeReviewCard(); return; }
+  if (lastPending) previewSessionBar(`复习 0/${lastPending}`, 0);
   close();
   await bankReady;
   (await load('review'))?.startReview();
@@ -288,7 +306,7 @@ function onPlan(e) {
 function onList() {
   close();
   track('dict-view', { from: 'list' });
-  if (typeof window !== 'undefined' && typeof window.__stwOpenList === 'function') window.__stwOpenList();
+  if (typeof window !== 'undefined' && typeof window.__stwOpenList === 'function') window.__stwOpenList(plan?.dict || 'all');
   else console.warn('home: host hook __stwOpenList missing — word-list panel not opened');
 }
 
@@ -309,7 +327,13 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   window.addEventListener('stw:list-close', open);
 
   window.addEventListener('stw:plan-save', e => {
-    if (e.detail?.autostart !== false) { close(); return; }
+    if (e.detail?.autostart !== false) {
+      const goal = Number(e.detail?.goal) || 0;
+      const done = Array.isArray(lastUserRows) ? countTodayLearned(lastUserRows, today()) : 0;
+      previewSessionBar(learnBarText(goal, done), learnBarPct(goal, done));
+      close();
+      return;
+    }
     plan = { dict: e.detail.dict, daily_goal: e.detail.goal };
     renderToken++;
     renderPlanRow(logged());

@@ -1,4 +1,4 @@
-import { AUTH_CONFIG } from './config.js?v=staging-ac923ae';
+import { AUTH_CONFIG } from './config.js?v=staging-7ecf1b3';
 
 (() => {
 const KEY = 'stw.auth.session';

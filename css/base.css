@@ -230,15 +230,18 @@ body.is-loading .eq i{animation:eq .8s ease-in-out infinite alternate}
   .carousel{order:1}
   /* 控制行已并卡（无悬浮控制条）：底部让位从 100px 收成 14px+安全区，高度 auto 内容自适应。
      2026-10-04 歌词固定带工单：会话内歌词要与词面同屏，deck 再压一轮——padding/gap/CD 全收，
-     片段徽章与歌名同步紧凑化（字号/padding），歌名移动端单行截断 */
+     歌名移动端单行截断 */
   .aside > .deck{order:3;flex:none;align-self:stretch;width:auto;margin:0 16px calc(10px + env(safe-area-inset-bottom,0px));border-radius:22px;height:auto;padding:10px 14px 8px;gap:8px}
   /* 高 auto 下 .deck-cd 的 height:100% 失去参照（塌陷/被原尺寸撑爆），给固定大小，宽由 aspect-ratio:1 推出 */
   .deck-cd{height:56px}
+  /* 二轮减行（2026-10-04 用户定调：四行字太多）：片段徽章移动端去掉；信息列收成
+     标题 / 歌手+跳转 两行——标题独占一行，Apple Music 跳转挪到歌手行另一端（卡片右缘）。
+     flex:1 让信息列撑到卡右缘，margin-left:auto 才是真右对齐，不是内容宽的伪右 */
+  .aside > .deck .clip{display:none}
   .deck-info a .long{display:none}
-  .deck-info{align-self:center;gap:3px}
-  .deck-info b{-webkit-line-clamp:1}
-  .deck-info a{margin-top:0}
-  .aside > .deck .clip{margin-bottom:0;font-size:11px;padding:1px 8px}
+  .deck-info{align-self:center;flex:1;min-width:0;flex-flow:row wrap;align-items:baseline;gap:2px 10px}
+  .deck-info b{flex:1 1 100%;-webkit-line-clamp:1}
+  .deck-info a{margin-left:auto;margin-top:0}
   .aside > .deck .ctl{padding-top:4px}
   /* 词表面板（2026-09-30 用户定调：标题区完全固定不动）——面板改 flex 列不滚动，
      标题/筛选/统计静置，唯一滚动区是 .grid（占位推卡式布局，弃 sticky 吸附方案） */
@@ -328,10 +331,16 @@ body.is-loading .eq i{animation:eq .8s ease-in-out infinite alternate}
 /* 完整版「想要」计数器 + 一次性问卷的样式已于 2026-09-30 随功能移除（头部完整版 pill 一并退役） */
 /* ---------- word bank ---------- */
 .card{content-visibility:auto;contain-intrinsic-size:auto 150px}
-.stage.swap-up{animation:swapUp .32s cubic-bezier(.2,.8,.2,1)}
-.stage.swap-down{animation:swapDown .32s cubic-bezier(.2,.8,.2,1)}
-@keyframes swapUp{from{opacity:0;transform:translateY(34%)}to{opacity:1;transform:none}}
-@keyframes swapDown{from{opacity:0;transform:translateY(-34%)}to{opacity:1;transform:none}}
+/* 换歌只换歌词（2026-10-04 用户定调）：卡底与词面静止，歌词盒随手势渐出、新内容渐入；
+   原 swapUp/swapDown 整卡动画（translateY 34% + 渐隐，连底色带词面一起动）随 switchClip 改造移除 */
+.lyrics{transition:opacity .18s ease}
+.lyrics.lyr-swap{opacity:0}
+.lyrics.lyr-in{animation:lyrIn .32s ease-out}
+@keyframes lyrIn{from{opacity:0}to{opacity:1}}
+/* 词面入场（2026-10-04 用户定调）：换词推进/收卡回词面/胶囊关闭时词面上滑渐入，
+   明确「已是下一个单词」；reduced-motion 由全局关断覆盖 */
+.stage.enter-word{animation:wordIn .38s cubic-bezier(.2,.8,.2,1)}
+@keyframes wordIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
 /* songs of this word: a vertical column of dots on the card's right edge (like story pagination) */
 .clip-dots{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px}
 .clip-dot{width:6px;height:6px;padding:0;border:0;border-radius:3px;background:rgba(255,255,255,.28);transition:height .3s cubic-bezier(.3,.7,.3,1),background .3s}

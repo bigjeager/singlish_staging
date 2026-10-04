@@ -1,6 +1,5 @@
-import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-ac923ae';
+import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-7ecf1b3';
 
-const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKS = 17;
@@ -71,7 +70,7 @@ function renderCheckins() {
 }
 
 function renderRing(plan, prog) {
-  const pctEl = el('ringPct'), sub = el('ringSub'), cap = el('ringDict'), bar = el('ringBar');
+  const pctEl = el('ringPct'), sub = el('ringSub'), bar = el('ringBar');
   if (!pctEl || !bar) return;
   const dict = plan?.dict || 'all';
   let total = 0, learned = 0, fromProg = false;
@@ -84,14 +83,9 @@ function renderRing(plan, prog) {
     total = set ? set.size : 0;
     learned = set ? userWords.filter(r => r?.learned_at && set.has(r.word)).length : 0;
   }
-  const label = `${DICT_NAME[dict] || '全库'}词库`;
-  // 字典名与学习卡计划行重复（2026-10-04 去重）：有计划（ring 计的就是该词典）时整行不占位，
-  // 仅无计划态（ring 退全库口径）保留「全库词库」说明计数范围
-  const setCap = () => { if (cap) { cap.textContent = label; cap.hidden = !!plan?.dict; } };
   if (!total || (!fromProg && !trial && trialMeta.count > 0 && total === trialMeta.count)) {
     pctEl.textContent = '--';
     if (sub) sub.textContent = '词库加载中';
-    setCap();
     if (retryLeft-- > 0) retryT = setTimeout(() => lastArgs && renderViz(...lastArgs), 800);
     return;
   }
@@ -102,7 +96,6 @@ function renderRing(plan, prog) {
   bar.style.strokeDashoffset = (c * (1 - (tiny ? 0.02 : pct))).toFixed(1);
   pctEl.textContent = tiny ? (pct * 100).toFixed(1) + '%' : Math.round(pct * 100) + '%';
   if (sub) sub.textContent = `已学 ${learned} / 共 ${total} 词`;
-  setCap();
 }
 
 function renderMonths(start, todayCol) {
@@ -134,29 +127,14 @@ function renderMonths(start, todayCol) {
   }
 }
 
-function placeDividers() {
+function placeMonths() {
   const grid = el('hmGrid'), months = el('hmMonths');
   if (!grid || !months) return;
-  const bodyIn = grid.parentElement;
-  if (!bodyIn) return;
-  for (const d of bodyIn.querySelectorAll('.hm-div')) d.remove();
-  if (!monthCuts.length || !grid.children.length) return;
-  const base = bodyIn.getBoundingClientRect();
-  const gBox = grid.getBoundingClientRect();
+  if (!monthCuts.length || grid.children.length !== WEEKS) return;
+  const base = grid.parentElement.getBoundingClientRect();
   const monShift = months.getBoundingClientRect().left - base.left;
-  const gridW = gBox.right - base.left;
-  const top = months.offsetTop;
-  const bottom = gBox.bottom - base.top - 2;
-  const xs = monthCuts.map(col => grid.children[col * 7].getBoundingClientRect().left - base.left);
-  monthCuts.forEach((col, i) => {
-    if (col === 0) return;
-    const s = document.createElement('i');
-    s.className = 'hm-div';
-    s.style.left = `${xs[i] - 2.5}px`;
-    s.style.top = `${top}px`;
-    s.style.height = `${Math.max(0, bottom - top)}px`;
-    bodyIn.appendChild(s);
-  });
+  const gridW = grid.getBoundingClientRect().right - base.left;
+  const xs = monthCuts.map(col => grid.children[col].getBoundingClientRect().left - base.left);
   for (const { el: lab, col, narrow } of monthSpans) {
     const idx = monthCuts.indexOf(col);
     const nextIdx = monthCuts.findIndex((c, j) => j > idx && c > col);
@@ -164,8 +142,8 @@ function placeDividers() {
       lab.style.left = `${xs[idx] - monShift + 3}px`;
       lab.style.transform = '';
     } else {
-      const a = col === 0 ? 0 : xs[idx] - monShift - 2.5;
-      const b = nextIdx === -1 ? gridW - monShift : xs[nextIdx] - monShift - 2.5;
+      const a = col === 0 ? 0 : xs[idx] - monShift - 4;
+      const b = nextIdx === -1 ? gridW - monShift : xs[nextIdx] - monShift - 4;
       lab.style.left = `${(a + b) / 2}px`;
       lab.style.transform = 'translateX(-50%)';
     }
@@ -182,27 +160,33 @@ function renderHeatmap() {
   const todayCol = Math.max(0, Math.floor((now - start) / 86400000 / 7));
   renderMonths(start, todayCol);
   const frag = document.createDocumentFragment();
-  for (let i = 0; i < WEEKS * 7; i++) {
-    const d = addDays(start, i);
-    const k = ymdOf(d);
-    const n = dayCount.get(k) || 0;
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'hm-cell';
-    b.dataset.level = levelOf(n);
-    b.dataset.day = k;
-    if (k > today) {
-      b.classList.add('is-future');
-      b.disabled = true;
-      b.tabIndex = -1;
-    } else {
-      b.title = `${d.getMonth() + 1}月${d.getDate()}日 · ${n ? '学了 ' + n + ' 词' : '没学词'}`;
-      b.setAttribute('aria-label', b.title);
+  for (let w = 0; w < WEEKS; w++) {
+    const col = document.createElement('div');
+    col.className = 'hm-col' + (w > 0 && monthCuts.includes(w) ? ' hm-cut' : '');
+    for (let r = 0; r < 7; r++) {
+      const i = w * 7 + r;
+      const d = addDays(start, i);
+      const k = ymdOf(d);
+      const n = dayCount.get(k) || 0;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'hm-cell';
+      b.dataset.level = levelOf(n);
+      b.dataset.day = k;
+      if (k > today) {
+        b.classList.add('is-future');
+        b.disabled = true;
+        b.tabIndex = -1;
+      } else {
+        b.title = `${d.getMonth() + 1}月${d.getDate()}日 · ${n ? '学了 ' + n + ' 词' : '没学词'}`;
+        b.setAttribute('aria-label', b.title);
+      }
+      col.appendChild(b);
     }
-    frag.appendChild(b);
+    frag.appendChild(col);
   }
   grid.replaceChildren(frag);
-  placeDividers();
+  placeMonths();
 }
 
 function fillDetail(k, cell) {
@@ -285,10 +269,6 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       if (e.key === 'Escape') hideDetail();
     });
   }
-  const body = el('hmBody');
-  if (body) body.addEventListener('transitionend', e => {
-    if (e.target === body) placeDividers();
-  });
-  window.addEventListener('load', placeDividers);
-  window.addEventListener('resize', placeDividers);
+  window.addEventListener('load', placeMonths);
+  window.addEventListener('resize', placeMonths);
 }

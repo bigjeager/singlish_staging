@@ -1,8 +1,8 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-ac923ae';
-import { track } from './track.js?v=staging-ac923ae';
-import { markLearned } from './player.js?v=staging-ac923ae';
-import { buildQuizOptions } from './review.js?v=staging-ac923ae';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-ac923ae';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-7ecf1b3';
+import { track } from './track.js?v=staging-7ecf1b3';
+import { markLearned } from './player.js?v=staging-7ecf1b3';
+import { buildQuizOptions } from './review.js?v=staging-7ecf1b3';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-7ecf1b3';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -404,7 +404,7 @@ window.addEventListener('stw:review-progress', e => {
   if (btn) btn.hidden = true;
 });
 window.addEventListener('stw:review-exit', () => { if (state === 'idle') hideBar(); });
-window.addEventListener('stw:home-open', () => { if (state !== 'idle') exitSession(); });
+window.addEventListener('stw:home-open', () => { if (state !== 'idle') exitSession(); else hideBar(); });
 window.addEventListener('stw:home-close', () => { if (state !== 'idle') exitSession(); });
 window.__stwSessionBusy = () => state !== 'idle';
 window.__stwPlan = () => plan;

@@ -1,10 +1,10 @@
-import { ALL, DATA, setAll, setData, state, trial, inDict, fromMeta, stubify, ensureDetail, useClip, trialMeta } from './bank.js?v=staging-ac923ae';
-import { store, expand, isMobile, DICT_NAME, fmt } from './util.js?v=staging-ac923ae';
-import { getBankList, readBankCache, saveBankCache, revalidateBank } from './plan-api.js?v=staging-ac923ae';
-import { lyr, loadLyrics, fillLyrics } from './lyrics.js?v=staging-ac923ae';
-import { grid, deskStage, carousel, stageHTML, renderGrid, markCards, fillSlides, clearFilled } from './stage.js?v=staging-ac923ae';
-import { P, stop, currentRoot, play, cue, primeAudio, deferAdvance } from './player.js?v=staging-ac923ae';
-import { syncCarouselClose } from './wiring.js?v=staging-ac923ae';
+import { ALL, DATA, setAll, setData, state, trial, inDict, fromMeta, stubify, ensureDetail, useClip, trialMeta } from './bank.js?v=staging-7ecf1b3';
+import { store, expand, isMobile, DICT_NAME, fmt } from './util.js?v=staging-7ecf1b3';
+import { getBankList, readBankCache, saveBankCache, revalidateBank } from './plan-api.js?v=staging-7ecf1b3';
+import { lyr, loadLyrics, fillLyrics } from './lyrics.js?v=staging-7ecf1b3';
+import { grid, deskStage, carousel, stageHTML, renderGrid, markCards, fillSlides, clearFilled } from './stage.js?v=staging-7ecf1b3';
+import { P, stop, currentRoot, play, cue, primeAudio, deferAdvance } from './player.js?v=staging-7ecf1b3';
+import { syncCarouselClose } from './wiring.js?v=staging-7ecf1b3';
 
 let suppressScroll = false, scrollT = 0;
 let sessionNav = false;
@@ -54,10 +54,18 @@ export function go(i, autoplay, back) {
   if (i !== state.cur && !sessionNav) window.dispatchEvent(new CustomEvent('stw:manual-nav', { detail: { word: DATA[i].word } }));
   state.cur = i; P.i = -1; P.L = null;
   if (isMobile()) {
+    buildCarousel();   // 自愈：会话恢复路径可能先于 applyMode 进 go()（空轮播上 fillSlides 是 no-op）
     fillSlides(i);
     const slide = carousel.children[i];
-    if (slide && Math.abs(carousel.scrollLeft - slide.offsetLeft) > 2) { suppressScroll = true; carousel.scrollTo({ left: slide.offsetLeft, behavior: 'auto' }); setTimeout(() => suppressScroll = false, 80); }
-  } else deskStage.innerHTML = stageHTML(i);
+    let jumped = false;
+    if (slide && Math.abs(carousel.scrollLeft - slide.offsetLeft) > 2) { suppressScroll = true; carousel.scrollTo({ left: slide.offsetLeft, behavior: 'auto' }); setTimeout(() => suppressScroll = false, 80); jumped = true; }
+    const st = slide?.querySelector('.stage');
+    if (st && jumped) { st.classList.remove('enter-word'); void st.offsetWidth; st.classList.add('enter-word'); setTimeout(() => st.classList.remove('enter-word'), 500); }   // 词面入场：仅会话跳词播（用户手指滑动是真实位移，不重复播）
+  } else {
+    deskStage.innerHTML = stageHTML(i);
+    const st = deskStage.querySelector('.stage');
+    if (st) { st.classList.remove('enter-word'); void st.offsetWidth; st.classList.add('enter-word'); setTimeout(() => st.classList.remove('enter-word'), 500); }
+  }
   P.root = currentRoot();
   fillLyrics(i, P.root);
   if (isMobile()) { [i - 1, i + 1].forEach(j => { const s = carousel.children[j]?.querySelector('.stage'); if (s) fillLyrics(j, s); }); }
@@ -102,8 +110,9 @@ function settle() {
   go(i, state.started);
 }
 
+let clipSeq = 0;
 export async function switchClip(i, dir = 1) {
-  const en = DATA[i]; if (!en || en.nclips < 2) return;
+  const en = DATA[i]; if (!en || en.nclips < 2 || i !== state.cur) return;   // 非当前词的 dot 不可达（手势/键盘/可见 dot 都限当前），防御脱位
   deferAdvance();
   try { await ensureDetail(en); } catch { return; }
   primeAudio(i);
@@ -111,10 +120,28 @@ export async function switchClip(i, dir = 1) {
   useClip(en, (en.ci + dir + en.clips.length) % en.clips.length); lyr.delete(i);
   store.set('stw.pos', { word: en.word, ci: en.ci });
   stop();
-  if (isMobile()) { const sl = carousel.children[i]; if (sl) sl.innerHTML = stageHTML(i); } else deskStage.innerHTML = stageHTML(i);
-  const st = currentRoot();
-  st?.classList.add(dir > 0 ? 'swap-up' : 'swap-down');
-  P.root = st; fillLyrics(i, P.root); cue(i); setArt(i); renderGrid();
+  // 换歌只换歌词（2026-10-04 用户定调）：卡底与词面静止不重渲，clip-dots 只翻状态，歌词渐出→重填→渐入
+  const root = isMobile() ? carousel.children[i]?.querySelector('.stage') : deskStage?.querySelector('.stage');
+  (isMobile() ? carousel.children[i] : deskStage)?.querySelectorAll('.clip-dot')
+    .forEach(d => d.classList.toggle('on', +d.dataset.clipto.split(':')[1] === en.ci));
+  setArt(i); renderGrid(); cue(i);
+  P.root = currentRoot();
+  const box = root?.querySelector('.lyrics');
+  if (!box) { fillLyrics(i, root); play(i); return; }
+  const seq = ++clipSeq;
+  box.classList.remove('lyr-in');
+  box.classList.add('lyr-swap');
+  box.style.transition = ''; box.style.transform = ''; box.style.opacity = '';
+  await new Promise(r => setTimeout(r, 200));
+  if (seq !== clipSeq) return;
+  const bin = box.querySelector('.lyrics-in');
+  delete bin?.dataset.ok;
+  if (bin) bin.innerHTML = '<p class="lyr-msg">正在加载歌词…</p>';
+  await fillLyrics(i, root);
+  if (seq !== clipSeq) return;
+  box.classList.remove('lyr-swap');
+  box.classList.add('lyr-in');
+  setTimeout(() => { if (seq === clipSeq) box.classList.remove('lyr-in'); }, 380);
   play(i);
 }
 

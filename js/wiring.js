@@ -1,13 +1,23 @@
-import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-ac923ae';
-import { store, isMobile } from './util.js?v=staging-ac923ae';
-import { track } from './track.js?v=staging-ac923ae';
-import { loadLyrics } from './lyrics.js?v=staging-ac923ae';
-import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-ac923ae';
-import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-ac923ae';
-import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-ac923ae';
-import { openShare } from './share.js?v=staging-ac923ae';
+import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-7ecf1b3';
+import { store, isMobile } from './util.js?v=staging-7ecf1b3';
+import { track } from './track.js?v=staging-7ecf1b3';
+import { loadLyrics } from './lyrics.js?v=staging-7ecf1b3';
+import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-7ecf1b3';
+import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-7ecf1b3';
+import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-7ecf1b3';
+import { openShare } from './share.js?v=staging-7ecf1b3';
 
 function $(s) { return document.querySelector(s); }
+
+// 词面入场（2026-10-04 用户定调）：弹层收掉露出词面的时刻统一播 enter-word 上滑渐入，
+// 让用户明确「已是下一个单词」；与 nav.js go() 的换词入场同一动画语言
+function wordEnter() {
+  const st = isMobile()
+    ? [...document.querySelectorAll('.slide .stage')].find(s => { const r = s.getBoundingClientRect(); return r.x > -20 && r.x < innerWidth + 20; })
+    : $('#deskStage .stage');
+  if (!st) return;
+  st.classList.remove('enter-word'); void st.offsetWidth; st.classList.add('enter-word'); setTimeout(() => st.classList.remove('enter-word'), 500);
+}
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-say]'); if (!b) return;
@@ -100,7 +110,7 @@ function openList() {
   const c = grid.querySelector('.card.on');
   if (c) panel.scrollTop = c.offsetTop - panel.clientHeight / 2 + c.offsetHeight / 2;
 }
-window.__stwOpenList = openList;
+window.__stwOpenList = dict => { if (dict && dict !== state.dict) applyDict(dict, DATA[state.cur]?.word, false); openList(); };
 
 $('#closeList').addEventListener('click', () => {
   fromList = false; labelClose();
@@ -140,7 +150,7 @@ const mqTouch = matchMedia('(pointer: coarse)');
 carousel.addEventListener('touchstart', e => {
   if (e.touches.length !== 1) { drag = null; return; }
   const t = e.touches[0], sl = e.target.closest('.slide');
-  drag = sl ? { x: t.clientX, y: t.clientY, at: Date.now(), sl, axis: null, dy: 0 } : null;
+  drag = sl ? { x: t.clientX, y: t.clientY, at: Date.now(), sl, axis: null, dy: 0, info: sl.querySelector('.st-body'), inInfo: !!e.target.closest?.('.st-body') } : null;
 }, { passive: true });
 let drag = null;
 carousel.addEventListener('touchmove', e => {
@@ -150,32 +160,34 @@ carousel.addEventListener('touchmove', e => {
     if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
     const i = +drag.sl.dataset.i, sl = drag.sl, stage = sl.querySelector('.stage');
     const vertical = Math.abs(dy) > Math.abs(dx) * 1.2;
-    const scrollable = sl.scrollHeight > sl.clientHeight + 2 && !((dy < 0 && sl.scrollTop + sl.clientHeight >= sl.scrollHeight - 2) || (dy > 0 && sl.scrollTop <= 2));
-    drag.axis = vertical && i === state.cur && DATA[i]?.nclips > 1 && stage && !scrollable ? 'y' : 'x';
-    if (drag.axis === 'y') { drag.stage = stage; stage.style.transition = 'none'; }
+    const atEdge = (el, dir) => (dir < 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 2) || (dir > 0 && el.scrollTop <= 2);
+    const scrollable = sl.scrollHeight > sl.clientHeight + 2 && !atEdge(sl, dy);
+    const info = drag.info, infoCan = drag.inInfo && info && info.scrollHeight > info.clientHeight + 2 && !atEdge(info, dy);
+    drag.axis = vertical && i === state.cur && DATA[i]?.nclips > 1 && stage && !scrollable && !infoCan ? 'y' : 'x';
+    if (drag.axis === 'y') { drag.box = stage.querySelector('.lyrics'); drag.box.style.transition = 'none'; }
   }
   if (drag.axis !== 'y') return;
   e.preventDefault();
   drag.dy = dy;
   const f = dy * .55;
-  drag.stage.style.transform = `translateY(${f}px)`;
-  drag.stage.style.opacity = String(Math.max(.35, 1 - Math.abs(f) / 420));
+  drag.box.style.transform = `translateY(${f}px)`;
+  drag.box.style.opacity = String(Math.max(.35, 1 - Math.abs(f) / 420));
 }, { passive: false });
 carousel.addEventListener('touchend', () => {
   if (!drag || drag.axis !== 'y') { drag = null; return; }
-  const { stage, dy, at } = drag, i = +drag.sl.dataset.i; drag = null;
+  const { box, dy, at } = drag, i = +drag.sl.dataset.i; drag = null;
   const fast = Math.abs(dy) / Math.max(1, Date.now() - at) > .45;
   const ease = 'transform .22s cubic-bezier(.3,.7,.3,1), opacity .22s';
   if (Math.abs(dy) > 70 || (fast && Math.abs(dy) > 24)) {
-    stage.style.transition = ease;
-    stage.style.transform = `translateY(${dy < 0 ? '-40%' : '40%'})`; stage.style.opacity = '0';
+    box.style.transition = ease;
+    box.style.transform = `translateY(${dy < 0 ? '-40%' : '40%'})`; box.style.opacity = '0';
     setTimeout(() => switchClip(i, dy < 0 ? 1 : -1), 170);
   } else {
-    stage.style.transition = 'transform .3s cubic-bezier(.2,1.4,.4,1), opacity .25s';
-    stage.style.transform = ''; stage.style.opacity = '';
+    box.style.transition = 'transform .3s cubic-bezier(.2,1.4,.4,1), opacity .25s';
+    box.style.transform = ''; box.style.opacity = '';
   }
 });
-carousel.addEventListener('touchcancel', () => { if (drag?.stage) { drag.stage.style.transition = 'transform .25s, opacity .25s'; drag.stage.style.transform = ''; drag.stage.style.opacity = ''; } drag = null; });
+carousel.addEventListener('touchcancel', () => { if (drag?.box) { drag.box.style.transition = 'transform .25s, opacity .25s'; drag.box.style.transform = ''; drag.box.style.opacity = ''; } drag = null; });
 
 export function syncCarouselClose() {
   const btn = $('#carouselClose'), row = $('#learnRow');
@@ -273,7 +285,7 @@ window.addEventListener('stw:quiz-result', e => {
   $('#quizNext').hidden = false;
 });
 
-window.addEventListener('stw:quiz-close', () => { quizPending++; $('#quizModal').hidden = true; $('#revealModal').hidden = true; $('#reviewOps').hidden = false; $('#quizNext').hidden = true; $('#quizOpts').classList.remove('opts-done'); });
+window.addEventListener('stw:quiz-close', () => { quizPending++; $('#quizModal').hidden = true; $('#revealModal').hidden = true; $('#reviewOps').hidden = false; $('#quizNext').hidden = true; $('#quizOpts').classList.remove('opts-done'); wordEnter(); });
 
 window.addEventListener('stw:flash-show', e => {
   const opts = e.detail?.options;
@@ -328,7 +340,7 @@ window.addEventListener('stw:flash-result', e => {
   $('#flashReplay').disabled = true;
 });
 
-window.addEventListener('stw:flash-close', () => { $('#flashModal').hidden = true; $('#flashReplay').disabled = true; $('#flashTag').hidden = true; $('#flashOpts').classList.remove('opts-done'); });
+window.addEventListener('stw:flash-close', () => { $('#flashModal').hidden = true; $('#flashReplay').disabled = true; $('#flashTag').hidden = true; $('#flashOpts').classList.remove('opts-done'); wordEnter(); });
 $('#flashReplay').addEventListener('click', () => window.dispatchEvent(new CustomEvent('stw:flash-replay')));
 
 const learnMode = () => document.body.classList.contains('stw-learn');

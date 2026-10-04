@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-ac923ae">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-ac923ae">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-ac923ae">
-  <link rel="stylesheet" href="./css/home.css?v=staging-ac923ae">
+<link rel="stylesheet" href="./css/base.css?v=staging-7ecf1b3">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-7ecf1b3">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-7ecf1b3">
+  <link rel="stylesheet" href="./css/home.css?v=staging-7ecf1b3">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -116,14 +116,16 @@
      z-index 45——高于内容（header 20 / 播放器 30 / 词表面板 40），低于 .auth 弹层（56）。
      本块只出骨架，接线在 js/home.js（后续阶段）：id 即契约，改一个字母就断一条腿 -->
 <section class="home open" id="homeView" aria-label="首页">
-  <div class="home-in">
-
-    <!-- 精简头：logo（点击关首页，接线在 home.js）+ 登录位。#homeAuth 是占位——home.js 往里放
-         登录入口或留白；不复制 #authBtn，全页 id 唯一 -->
+    <!-- 精简头（2026-10-04 用户定调：首页↔学习页切换 header 区域零变化）：提出 .home-in 全宽复刻 .top
+         （css/home.css 同 padding/毛玻璃带/发丝线，移动断点同 6×16 与 logo 21px）——logo（点击关首页，
+         接线在 home.js）+ 登录位。#homeAuth 是占位——home.js 往里放登录入口或留白；
+         不复制 #authBtn，全页 id 唯一（登录态下两视图共用同一颗资料卡钮，搬槽位不改样式） -->
     <header class="home-head">
       <div class="home-logo"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b>Sing<span>lish</span></b></div>
       <span class="home-auth" id="homeAuth"></span>
     </header>
+
+  <div class="home-in">
 
     <!-- 问候行：home.js 填纯时段问候（日期 2026-10-04 文字减负删除，系统状态栏自会显示）；
          streak 行恢复（2026-10-04 用户定调：连续打卡与热力卡的累计打卡是两个口径，并存不重复） -->
@@ -171,7 +173,7 @@
     <!-- 词库进度 + 打卡热力（2026-10-02 用户需求，二轮合并）：一张卡两段——上段圆环（词库已学/总数），
          发丝线分隔下段打卡热力抽屉（默认收起，#hmToggle 点击展开/收回，.is-open 切 grid-template-rows
          0fr/1fr 抽屉动画，chevron 旋转），累计打卡天数常驻收起的小横条上；展开后 #hmMonths 出 GitHub 风
-         英文月份行、月起始列左缘 .hm-div 发丝竖线（月份行顶贯穿网格底）圈出各月列组，点格子 #hmPop
+         英文月份行、月初列加宽的 8px 列缝自然分出月组（2026-10-04 弃 .hm-div 竖线），点格子 #hmPop
          在格旁就地浮出当天气泡（学习/复习词数，点网格外/Escape/重开抽屉收）。
          数值全由 js/home-viz.js 渲染：圆环 = #ringBar 的 stroke-dashoffset，格子全由 #hmGrid 空壳生成；
          游客/未登录整卡隐藏 -->
@@ -190,9 +192,13 @@
           <b class="ring-pct" id="ringPct">--</b>
         </div>
         <div class="ring-info">
-          <span class="home-card-label">词库进度</span>
           <p class="ring-sub" id="ringSub">--</p>
-          <p class="ring-dict" id="ringDict"></p>
+          <!-- 浏览词库钮（2026-10-04 用户需求：底部幽灵文本升级成真按钮并进本卡；同轮减字——
+               「词库进度」label 与字典名行删除，点钮经 __stwOpenList(词库) 把面板对应 chip 选中，
+               字典身份由选中标签自明）：关首页→词表网格面板，面板开关归 app.js 的 __stwOpenList 钩子；
+               面板[关闭]经 stw:list-close 回首页，词卡点击则留在轮播。
+               游客态本卡整卡隐藏（home-viz.js），游客走学习卡「逛这 20 词」同款动作 -->
+          <button type="button" class="home-browse" id="homeList">浏览词库</button>
         </div>
       </div>
       <button type="button" class="hm-head" id="hmToggle" aria-expanded="false" aria-controls="hmBody">
@@ -208,12 +214,7 @@
       </div>
     </div>
 
-    <!-- 计划行已并入学习卡（见 home-cards 注释） -->
-
-
-    <!-- 幽灵链接：浏览词库=关首页→词表网格面板（原头部右上角入口，用户 2026-09-28 定调迁入首页，
-         面板开关归 app.js 的 __stwOpenList 钩子；面板[关闭]经 stw:list-close 回首页，词卡点击则留在轮播） -->
-    <button type="button" class="home-browse" id="homeList">浏览词库 →</button>
+    <!-- 计划行已并入学习卡（见 home-cards 注释）；浏览词库钮已并入词库进度卡（见 ring-info 注释） -->
 
   </div>
 </section>
@@ -446,7 +447,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-ac923ae"></script>
+<script type="module" src="./js/main.js?v=staging-7ecf1b3"></script>
 
 
 

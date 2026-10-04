@@ -10,16 +10,26 @@
   background:var(--bg);-webkit-overflow-scrolling:touch}
 .home.open{display:block}
 /* 桌面居中窄栏 max-width 480px（规格 §2），移动端即全宽；安全区留白让全面屏不顶格 */
-.home-in{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;
-  padding:calc(env(safe-area-inset-top,0px) + 14px) 20px calc(env(safe-area-inset-bottom,0px) + 28px)}
+.home-in{max-width:480px;margin:0 auto;display:flex;flex-direction:column;
+  padding:28px 20px calc(env(safe-area-inset-bottom,0px) + 28px)}
 
 /* ---------- 精简头：logo + 登录位 ---------- */
-.home-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:28px}
-/* logo 配方同 .logo（css/base.css:38-43 的 eq 音量条 + 展示字标），类名错开以免抢 document.querySelector('.logo') */
+/* ---------- 精简头（2026-10-04 用户定调：首页↔学习页切换 header 区域零变化）：
+   全宽复刻 .top（css/base.css）——同 14×28 padding、毛玻璃带、发丝线；移动断点同 6×16 + logo 21px。
+   .top 同款配方逐条对齐，切换视图时 band 高度/logo/资料卡钮逐像素不动。
+   logo 配方同 .logo（css/base.css:38-43 的 eq 音量条 + 展示字标），类名错开以免抢 document.querySelector('.logo') */
+.home-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 28px;background:color-mix(in srgb,var(--bg) 62%,transparent);
+  backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);border-bottom:1px solid var(--stroke)}
 .home-logo{display:flex;align-items:center;gap:10px}
 .home-logo b{font:800 24px/1 var(--f-display);letter-spacing:-.03em}
 .home-logo b span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .home-auth:empty{display:none}   /* home.js 未放登录入口时，留白即无形 */
+/* 移动端同 .top phone 块（css/base.css ≤899px：6×16 padding + h1 21px） */
+@media (max-width:899px){
+  .home-head{padding:calc(env(safe-area-inset-top,0px) + 6px) 16px}
+  .home-logo b{font-size:21px}
+}
 
 /* ---------- 问候行 + streak 行（2026-10-04 恢复：连续打卡口径，与热力卡累计口径并存） ---------- */
 .home-hello{margin:0;font:800 26px/1.2 var(--f-display);letter-spacing:-.02em}
@@ -92,18 +102,19 @@
   font-size:14px;box-shadow:0 6px 20px rgba(255,77,141,.35)}
 .home-plan.is-empty .home-plan-btn:hover{background:var(--grad);transform:scale(1.02)}
 
-/* ---------- 幽灵链接：浏览词库=关首页→词表面板（面板[关闭]经 stw:list-close 回首页，js/home.js） ---------- */
-.home-browse{display:block;width:fit-content;margin:28px auto 0;border:0;background:none;color:var(--muted);
-  padding:10px 18px;border-radius:999px;font-size:14px;font-weight:600;transition:color .15s,background .15s}
-.home-browse:hover{color:var(--ink);background:var(--glass)}
-/* W4（2026-09-30 工单）：首页计划行 [修改]（非空态，~37.5）与幽灵链接 [浏览词库]（~41）命中区 → 44。
+/* ---------- 浏览词库钮（2026-10-04 用户需求：底部幽灵文本升级成真按钮并进词库进度卡 ring-info）：
+   描边玻璃次级款，规格同 .home-plan-btn 家族；id homeList 接线不变（js/home.js onList） ---------- */
+.home-browse{align-self:flex-start;margin-top:4px;border:1px solid var(--stroke-2);background:var(--glass);color:var(--ink);
+  padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;transition:background .15s,transform .15s}
+.home-browse:hover{background:var(--glass-2);transform:translateY(-1px)}
+/* W4（2026-09-30 工单）：首页计划行 [修改]（非空态，~37.5）与 [浏览词库]（~37）命中区 → 44。
    AC7 全量审计发现的同族遗漏——同页 .home-card-btn / .home-plan.is-empty 已是 44 标准；仅移动断点 */
 @media (max-width:899px){ .home-plan-btn,.home-browse{min-height:44px} }
 
 /* ---------- 桌面 ≥600px：双主卡并排等宽（≤599px 维持上方纵向堆叠） ---------- */
 @media (min-width:600px){
   .home-cards{grid-template-columns:1fr 1fr}
-  .home-in{padding-top:calc(env(safe-area-inset-top,0px) + 34px)}
+  .home-in{padding-top:14px}
 }
 
 /* ---------- 1003 工单 W9：桌面 home-in 480px 双列后单卡内容仅 ~182px，计划行 label(学习计划)+钮(修改)
@@ -137,7 +148,6 @@
   font:800 17px/1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .ring-info{display:flex;flex-direction:column;gap:5px;min-width:0}
 .ring-sub{margin:0;font:800 18px/1.2 var(--f-display);letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
-.ring-dict{margin:0;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 
 /* 热力段标题行（= 收起态小横条）：发丝线与圆环段分隔；累计打卡天数常驻在此（用户 2026-10-02 定调） */
 .hm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:13px;
@@ -148,13 +158,20 @@
 .hm-hint{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .hm-chev{color:var(--muted);transition:transform .3s cubic-bezier(.3,.7,.3,1)}
 .hm.is-open .hm-chev{transform:rotate(180deg)}
-/* 抽屉：grid-template-rows 0fr/1fr 过渡收高；可见性带延迟——展开即见、收起动画播完再藏（Tab 焦点不漏进收起的抽屉） */
+/* 抽屉：grid-template-rows 0fr/1fr 过渡收高；可见性带延迟——展开即见、收起动画播完再藏（Tab 焦点不漏进收起的抽屉）；
+   内容子项 flex-shrink:0（2026-10-04 修结尾下坠：收缩期 months/grid 被压缩进溢出布局，
+   动画终帧回弹终态布局致内容整体跳 ~11px，锁死不缩后全程按终态揭示） */
 .hm-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.3,.7,.3,1)}
 .hm.is-open .hm-body{grid-template-rows:1fr}
 .hm-body-in{overflow:hidden;position:relative;min-height:0;display:flex;flex-direction:column;gap:12px;
   padding-right:8px;visibility:hidden;transition:visibility 0s .35s}
 .hm.is-open .hm-body-in{visibility:visible;transition:visibility 0s 0s}
-.hm-grid{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;grid-template-rows:repeat(7,auto);gap:4px}
+/* 网格：17 根周列（.hm-col 各 7 格）flex-basis:0 等宽，列缝 4px；月初列 .hm-cut 追加 4px 左缘
+   ——月缝 8px 恰为周缝两倍，自然分出月组（2026-10-04 弃 .hm-div 竖线，用户定调干扰画面）；
+   basis:0 下带缝列不缩格，各方格恒等大 */
+.hm-grid{display:flex;gap:4px;flex-shrink:0}
+.hm-col{flex:1 1 0;display:flex;flex-direction:column;gap:4px}
+.hm-col.hm-cut{margin-left:4px}
 .hm-cell{aspect-ratio:1;width:100%;padding:0;border:0;border-radius:4px;background:rgba(255,255,255,.05);
   cursor:pointer;transition:transform .12s}
 .hm-cell:hover{transform:scale(1.18)}
@@ -166,17 +183,13 @@
 .hm-cell[data-level="4"]{background:rgba(255,122,89,.82)}
 .hm-cell[data-level="5"]{background:var(--grad)}
 .hm-cell.is-future{visibility:hidden}
-/* 月份标识行：GitHub 风格英文缩写（js/home-viz.js 绝对定位——居中段锚两条月界线中点
-   translateX(-50%)，尾段<2 列锚线右 3px；弃 grid 对齐：WebKit 对宽于轨道的网格项会把
+/* 月份标识行：GitHub 风格英文缩写（js/home-viz.js 绝对定位——居中段锚月缝中点
+   translateX(-50%)，尾段<2 列锚缝右 3px；弃 grid 对齐：WebKit 对宽于轨道的网格项会把
    start/stretch 渲染成右贴齐致文字压线）；窗口首日的残月也算一个月界段；
    height 11px 撑行高（子项全绝对），-6px 抵消 .hm-body-in 的 12px flex gap 贴近网格 */
-.hm-months{display:block;position:relative;height:11px;font-size:11px;font-weight:600;
+.hm-months{display:block;position:relative;height:11px;flex-shrink:0;font-size:11px;font-weight:600;
   color:var(--dim);line-height:1;margin-bottom:-6px}
 .hm-mon{position:absolute;top:0;white-space:nowrap}
-/* 月界发丝线：js 按月起始列定位在 4px 列缝正中（两侧各留 1.5px 不触方格），
-   下端收 2px 不顶末行格底，从月份行顶贯穿到网格底与缩写一起圈出各月列组；
-   缩放/重渲染时由 placeDividers 重排 */
-.hm-div{position:absolute;width:1px;border-radius:1px;background:rgba(255,255,255,.13);pointer-events:none}
 /* 当天气泡浮层（点格子就地浮出，点网格外/Escape/重开抽屉收）：表面质感对齐 .auth-card 弹层家族
    （深色半透明 + 1px 淡边 + 模糊 + 柔和投影）；--ax 是小箭头锚点（js 按格心写入），
    气泡在格下方时箭头在上缘朝上，.is-above（气泡在格上方）翻到下缘朝下 */

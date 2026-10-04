@@ -1,7 +1,7 @@
-import { ALL, DATA, state, trial, setTrial } from './bank.js?v=staging-ac923ae';
-import { isMobile } from './util.js?v=staging-ac923ae';
-import { renderGrid } from './stage.js?v=staging-ac923ae';
-import { applyDict, restoreHash, trialBlocked, rebuildBank, bootBank, go } from './nav.js?v=staging-ac923ae';
+import { ALL, DATA, state, trial, setTrial } from './bank.js?v=staging-7ecf1b3';
+import { isMobile } from './util.js?v=staging-7ecf1b3';
+import { renderGrid } from './stage.js?v=staging-7ecf1b3';
+import { applyDict, restoreHash, trialBlocked, rebuildBank, bootBank, go } from './nav.js?v=staging-7ecf1b3';
 
 window.addEventListener('stw:auth', e => {
   if (!e.detail?.loggedIn || !trial) return;
