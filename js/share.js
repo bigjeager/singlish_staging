@@ -1,13 +1,13 @@
-import { DATA, idxOf } from './bank.js?v=staging-b72ca03';
-import { store, esc } from './util.js?v=staging-b72ca03';
-import { track } from './track.js?v=staging-b72ca03';
-import { loadLyrics } from './lyrics.js?v=staging-b72ca03';
+import { DATA, idxOf } from './bank.js?v=staging-c8a064e';
+import { store, esc } from './util.js?v=staging-c8a064e';
+import { track } from './track.js?v=staging-c8a064e';
+import { loadLyrics } from './lyrics.js?v=staging-c8a064e';
 
 const $ = s => document.querySelector(s);
 const SHARE_LINES = ['每个单词，都有一首歌', '听歌，顺便把单词背了', '唱过的词，忘不掉', '单曲循环过的歌词，想忘都难', '这首歌里，藏着一个考试词', '背单词这件事，终于不无聊了'];
 const loadImg = src => new Promise((ok, no) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => ok(im); im.onerror = no; im.src = src; });
 
-function rrect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.closePath(); }
+function rrect(g, x, y, w, h, r) { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + r, y, r); g.closePath(); }
 function fitFont(g, text, weight, family, max, width) { let size = max; do { g.font = `${weight} ${size}px ${family}`; size -= 4; } while (g.measureText(text).width > width && size > 24); return g.font; }
 function wrap(g, text, width) {
   const parts = text.match(/[\u3000-\u9fff\uff00-\uffef]|[^\s\u3000-\u9fff\uff00-\uffef]+|\s+/g) || [];
@@ -86,11 +86,6 @@ async function makeCard(i) {
   g.textAlign = 'left'; g.font = `800 44px ${DISPLAY}`; g.fillStyle = '#F7F5FF'; g.fillText('Sing', 80, qy + 78);
   const sw = g.measureText('Sing').width, lw = g.measureText('lish').width; g.fillStyle = grad(80 + sw, 80 + sw + 80); g.fillText('lish', 80 + sw, qy + 78);
   g.fillStyle = '#F7F5FF'; g.fillText('.study', 80 + sw + lw, qy + 78);
-  const px = 80 + sw + lw + g.measureText('.study').width + 16;
-  g.font = `700 22px ${BODY}`; const pw = g.measureText('preview').width + 28, ph = 36, py = qy + 78 - 32;
-  g.fillStyle = 'rgba(255,77,141,.12)'; rrect(g, px, py, pw, ph, ph / 2); g.fill();
-  g.strokeStyle = 'rgba(255,77,141,.45)'; g.lineWidth = 2; rrect(g, px, py, pw, ph, ph / 2); g.stroke();
-  g.fillStyle = '#FF9DC0'; g.textBaseline = 'middle'; g.fillText('preview', px + 14, py + ph / 2 + 1); g.textBaseline = 'alphabetic';
   g.font = `500 24px ${BODY}`; g.fillStyle = '#8A86AA'; g.fillText(SHARE_LINES[shareLine], 80, qy + 122);
   return new Promise(ok => c.toBlob(ok, 'image/png'));
 }

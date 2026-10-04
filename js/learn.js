@@ -1,8 +1,8 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-b72ca03';
-import { track } from './track.js?v=staging-b72ca03';
-import { markLearned } from './player.js?v=staging-b72ca03';
-import { buildQuizOptions } from './review.js?v=staging-b72ca03';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-b72ca03';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-c8a064e';
+import { track } from './track.js?v=staging-c8a064e';
+import { markLearned } from './player.js?v=staging-c8a064e';
+import { buildQuizOptions } from './review.js?v=staging-c8a064e';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-c8a064e';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
