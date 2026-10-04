@@ -1,4 +1,4 @@
-import { AUTH_CONFIG } from './config.js?v=staging-7ecf1b3';
+import { AUTH_CONFIG } from './config.js?v=staging-b72ca03';
 
 const KEY = 'stw.auth.session';
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };

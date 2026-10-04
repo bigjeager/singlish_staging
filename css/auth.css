@@ -46,7 +46,7 @@
 .auth-tab{flex:1;height:36px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-weight:700;font-size:14px;transition:color .15s,background .15s}
 .auth-tab + .auth-tab{border-left:1px solid var(--stroke)}
 .auth-tab:hover{color:var(--ink)}
-.auth-tab[aria-selected="true"]{background:var(--grad);color:#1A0C14;font-weight:800}
+.auth-tab[aria-selected="true"]{background:var(--grad) border-box;color:#1A0C14;font-weight:800}
 /* 1003 工单 W22（W4 重开）：按钮级 ellipsis 会把顶到预算的 .auth-name 整个换成孤「…」（Chromium 对放不下
    的原子内联整体省略，N01 排除实验坐实省略号非 span 所画）——截断职责唯一归 .auth-name 自己（css/profile.css），
    本层摘掉 text-overflow；max-width 150→210 让桌面 140 名字预算成真：border-box 下内容宽 210−30−2=178，

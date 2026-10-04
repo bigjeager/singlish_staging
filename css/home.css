@@ -73,8 +73,9 @@
    色取 --amber（同 .pick-hint 的提示色语义：这是补充信息，不是告警）；hidden 由 home.js 切，
    无超额时整行不占位（零位移，不把按钮推下去） */
 .home-learn-over{margin:0;font-size:12.5px;line-height:1.4;color:var(--amber);font-variant-numeric:tabular-nums}
-/* 主按钮（2026-09-29 定调反转：待办权重高于已完成的）：复习卡「开始复习」= 渐变主 CTA（.auth-btn 同款），
-   学习卡「继续学习/再学 N 词」= 玻璃胶囊描边（.learn-btn 同款）；
+/* 主按钮（2026-10-04 糖位定调：每页需有一颗主色钮做引导，js/home.js renderHomeCandy 统一分配）：
+   待办优先（2026-09-29 定调）复习「开始复习」在场当糖，复习空时糖回落学习卡「开始学习/继续学习/
+   再学 N 词/逛这 20 词」——.is-grad 由 js 切换，静态默认在学习卡；
    margin-top:auto 让两张卡的按钮都对齐卡底（网格行等高拉伸） */
 .home-card-btn{margin-top:auto;align-self:flex-start;min-height:44px;border:1px solid var(--stroke-2);
   border-radius:999px;padding:0 22px;font-size:14px;font-weight:800;background:var(--glass);color:var(--ink);
@@ -94,13 +95,16 @@
   border-radius:999px;padding:8px 16px;font-size:13px;font-weight:700;transition:background .15s,transform .15s}
 .home-plan-btn:hover{background:var(--glass-2);transform:translateY(-1px)}
 /* 无计划变形（规格 §2）：文案让位，整行收成 [设置学习计划] 主按钮（.is-empty 由 home.js 切）；
+   渐变只在 .candy 在场（renderHomeCandy：学习卡主钮/guest 逛词卡不在场才轮到它）——
+   guest 首页 逛这 20 词 当糖时本行退回描边玻璃，保「每页一颗糖」；
    margin-top 归零——脚注款 12px 上边距 + flex gap 10 会在无计划态（按钮隐藏）攒出 22px 空隙
    （1003 工单 W12：文案—发丝线间距口径 ≤16px） */
 .home-plan.is-empty{margin-top:0}
 .home-plan.is-empty .home-plan-k,.home-plan.is-empty .home-plan-text{display:none}
-.home-plan.is-empty .home-plan-btn{flex:1;min-height:44px;border:0;background:var(--grad);color:#1A0C14;
+.home-plan.is-empty.candy .home-plan-btn{flex:1;min-height:44px;border:0;background:var(--grad);color:#1A0C14;
   font-size:14px;box-shadow:0 6px 20px rgba(255,77,141,.35)}
-.home-plan.is-empty .home-plan-btn:hover{background:var(--grad);transform:scale(1.02)}
+.home-plan.is-empty.candy .home-plan-btn:hover{background:var(--grad);transform:scale(1.02)}
+.home-plan.is-empty:not(.candy) .home-plan-btn{flex:1;min-height:44px;font-size:14px}
 
 /* ---------- 浏览词库钮（2026-10-04 用户需求：底部幽灵文本升级成真按钮并进词库进度卡 ring-info）：
    描边玻璃次级款，规格同 .home-plan-btn 家族；id homeList 接线不变（js/home.js onList） ---------- */

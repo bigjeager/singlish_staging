@@ -144,7 +144,7 @@ body.stw-review.stw-revealed .st-mean-hint{display:none}
 /* P10/P12（2026-10-01 用户反馈）：答后待前进态（学习/复习同构）——答题换普通灰底（不保留渐变，
    避免同屏双主色）、下一词升主按钮（渐变）；重播本词片段，播完自动前进 */
 body.stw-revealed #rvKnow{background:var(--glass);color:var(--muted);border-color:var(--stroke);box-shadow:none;opacity:1;pointer-events:none}
-body.stw-revealed #rvNext{background:var(--grad);color:#1A0C14;border-color:transparent;box-shadow:0 6px 18px rgba(255,77,141,.35)}
+body.stw-revealed #rvNext{background:var(--grad) border-box;color:#1A0C14;border-color:transparent;box-shadow:0 6px 18px rgba(255,77,141,.35)}
 body.stw-review .gloss{display:none}
 /* W5（2026-09-30 工单 P0，N1）：复习态隐藏 [分享]。理由：复习态宣称「隐藏释义」，而 [分享] 会把
    释义直接印到分享图上——一个按钮击穿整条防泄露契约。与 .st-mean 同一套 body.stw-review 前缀机制
@@ -175,8 +175,12 @@ body.stw-review .review-ops,body.stw-study .review-ops{display:flex}
 body.stw-learn .review-ops,body.stw-review .review-ops{display:flex}
 .rev-op{flex:1;height:40px;border:1px solid var(--stroke-2);background:var(--glass);color:var(--ink);border-radius:999px;font-size:13px;font-weight:700;transition:background .15s,transform .15s}
 .rev-op:hover{background:var(--glass-2);transform:translateY(-1px)}
-#rvKnow{background:var(--grad);color:#1A0C14;border-color:transparent;box-shadow:0 6px 18px rgba(255,77,141,.35)}
-#rvKnow:hover{background:var(--grad);color:#1A0C14}
+/* 渐变+描边控件 background 必须连带 border-box（2026-10-04 边缘盖不住工单）：渐变图按默认 padding-box
+   取尺寸后 repeat 平铺，1px 透明描边环里露出的是相邻平铺块（左环=上一块尾色琥珀、右环=下一块头色粉）；
+   渐变按描边外沿取尺寸后环内颜色连续。background 简写会重置 origin——hover 等重写处都要连带。
+   同病同修：#rvNext 答后升糖态、.auth-tab 选中态（第二个 tab 有 border-left） */
+#rvKnow{background:var(--grad) border-box;color:#1A0C14;border-color:transparent;box-shadow:0 6px 18px rgba(255,77,141,.35)}
+#rvKnow:hover{background:var(--grad) border-box;color:#1A0C14}
 .rev-op.is-ghost{border-color:var(--stroke-2);background:transparent;color:var(--soft)}
 .rev-op.is-ghost:hover{background:var(--glass);color:var(--ink);transform:none}
 /* 释义卡文案（reveal）：词下方一行释义，居中 */

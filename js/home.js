@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-7ecf1b3';
-import { trial, bankReady } from './bank.js?v=staging-7ecf1b3';
-import { track } from './track.js?v=staging-7ecf1b3';
-import { renderViz } from './home-viz.js?v=staging-7ecf1b3';
+import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-b72ca03';
+import { trial, bankReady } from './bank.js?v=staging-b72ca03';
+import { track } from './track.js?v=staging-b72ca03';
+import { renderViz } from './home-viz.js?v=staging-b72ca03';
 
 const KEY = 'stw.auth.session';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
@@ -106,6 +106,7 @@ async function render() {
   renderLearnCard(userRows, rows);
   renderReviewCard();
   renderPlanRow(on);
+  renderHomeCandy();
   renderViz(userRows, rows, plan, on, prog);
 }
 
@@ -208,6 +209,18 @@ function renderPlanRow(on) {
   if (row) row.classList.toggle('is-empty', empty);
 }
 
+/* 糖位统一分配（2026-10-04 用户定调：每页需有一颗主色钮做引导）：待办优先（2026-09-29 定调不变）
+   ——复习在办 [开始复习] 当糖；复习空时糖回落学习卡主 CTA（开始学习/继续学习/再学 N 词/逛这 20 词）；
+   两者都不在场（无计划态学习钮隐藏）才轮到整行 [设置学习计划]。任何时刻首页至多一颗 */
+function renderHomeCandy() {
+  const learn = el('homeLearnBtn'), review = el('homeReviewBtn'), row = el('homePlanRow');
+  const reviewUp = !!review && !review.hidden;
+  const learnUp = !!learn && !learn.hidden && !reviewUp;
+  if (review) review.classList.toggle('is-grad', reviewUp);
+  if (learn) learn.classList.toggle('is-grad', learnUp);
+  if (row) row.classList.toggle('candy', row.classList.contains('is-empty') && !reviewUp && !learnUp);
+}
+
 const INTENT = 'stw.intent';
 function markIntent() { try { sessionStorage.setItem(INTENT, 'plan-setup'); } catch {} }
 function takeIntent() {
@@ -225,7 +238,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-7ecf1b3') : import('./review.js?v=staging-7ecf1b3')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-b72ca03') : import('./review.js?v=staging-b72ca03')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
@@ -338,6 +351,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     renderToken++;
     renderPlanRow(logged());
     renderLearnCard(lastUserRows, lastRows);
+    renderHomeCandy();
     renderViz(lastUserRows, lastRows, plan, logged(), lastProg);
   });
 
@@ -345,6 +359,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     renderPlanRow(logged());
     renderLearnCard(lastUserRows, lastRows);
     renderReviewCard();
+    renderHomeCandy();
     renderViz(lastUserRows, lastRows, plan, logged(), lastProg);
   });
 

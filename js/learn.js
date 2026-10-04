@@ -1,8 +1,8 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-7ecf1b3';
-import { track } from './track.js?v=staging-7ecf1b3';
-import { markLearned } from './player.js?v=staging-7ecf1b3';
-import { buildQuizOptions } from './review.js?v=staging-7ecf1b3';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-7ecf1b3';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-b72ca03';
+import { track } from './track.js?v=staging-b72ca03';
+import { markLearned } from './player.js?v=staging-b72ca03';
+import { buildQuizOptions } from './review.js?v=staging-b72ca03';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-b72ca03';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -190,7 +190,10 @@ function updateStatus() {
 }
 function setProg(pct) {
   const bar = document.getElementById('learnProg');
-  if (bar) bar.style.width = pct.toFixed(1) + '%';
+  if (bar) {
+    bar.style.width = pct.toFixed(1) + '%';
+    bar.style.boxShadow = pct >= 100 ? 'none' : '';
+  }
 }
 function countWord() {
   if (pos < queue.length) markLearned(queue[pos]);
