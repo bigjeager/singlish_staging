@@ -1,10 +1,10 @@
-import { ALL, DATA, setAll, setData, state, trial, inDict, fromMeta, stubify, ensureDetail, useClip, trialMeta } from './bank.js?v=staging-c8a064e';
-import { store, expand, isMobile, DICT_NAME, fmt } from './util.js?v=staging-c8a064e';
-import { getBankList, readBankCache, saveBankCache, revalidateBank } from './plan-api.js?v=staging-c8a064e';
-import { lyr, loadLyrics, fillLyrics } from './lyrics.js?v=staging-c8a064e';
-import { grid, deskStage, carousel, stageHTML, renderGrid, markCards, fillSlides, clearFilled } from './stage.js?v=staging-c8a064e';
-import { P, stop, currentRoot, play, cue, primeAudio, deferAdvance } from './player.js?v=staging-c8a064e';
-import { syncCarouselClose } from './wiring.js?v=staging-c8a064e';
+import { ALL, DATA, setAll, setData, state, trial, inDict, fromMeta, stubify, ensureDetail, useClip, trialMeta } from './bank.js?v=staging-0f52a63';
+import { store, expand, isMobile, DICT_NAME, fmt } from './util.js?v=staging-0f52a63';
+import { getBankList, readBankCache, saveBankCache, revalidateBank } from './plan-api.js?v=staging-0f52a63';
+import { lyr, loadLyrics, fillLyrics } from './lyrics.js?v=staging-0f52a63';
+import { grid, deskStage, carousel, stageHTML, renderGrid, markCards, fillSlides, clearFilled } from './stage.js?v=staging-0f52a63';
+import { P, stop, currentRoot, play, cue, primeAudio, deferAdvance } from './player.js?v=staging-0f52a63';
+import { syncCarouselClose } from './wiring.js?v=staging-0f52a63';
 
 let suppressScroll = false, scrollT = 0;
 let sessionNav = false;
@@ -68,7 +68,7 @@ export function go(i, autoplay, back) {
   }
   P.root = currentRoot();
   fillLyrics(i, P.root);
-  if (isMobile()) { [i - 1, i + 1].forEach(j => { const s = carousel.children[j]?.querySelector('.stage'); if (s) fillLyrics(j, s); }); }
+  if (isMobile() && !activeSession()) { [i - 1, i + 1].forEach(j => { const s = carousel.children[j]?.querySelector('.stage'); if (s) fillLyrics(j, s); }); }
   markCards();
   loadLyrics(i).then(L => { if (state.cur === i) document.querySelector('#time').textContent = `0:00 / ${fmt(L.end - L.start)}`; }).catch(() => {});
   cue(i);

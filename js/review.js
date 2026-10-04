@@ -1,5 +1,7 @@
-import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-c8a064e';
-import { track } from './track.js?v=staging-c8a064e';
+import { getQuizPool, getUserWords, saveReviewState } from './plan-api.js?v=staging-0f52a63';
+import { track } from './track.js?v=staging-0f52a63';
+import { idxOf } from './bank.js?v=staging-0f52a63';
+import { loadLyrics } from './lyrics.js?v=staging-0f52a63';
 
 const KEY = 'stw.auth.session';
 const LIMIT = 10;
@@ -203,7 +205,7 @@ let advanceTimer = 0;
 
 let learnMod = null;
 async function learn() {
-  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-c8a064e'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
+  if (!learnMod) { try { learnMod = await import('./learn.js?v=staging-0f52a63'); } catch { console.warn('review: learn.js import failed — mutual-exclusion check skipped'); } }
   return learnMod;
 }
 
@@ -221,6 +223,7 @@ function go(i) {
   const know = document.getElementById('rvKnow');
   if (know) know.disabled = false;
   window.__stwLearnGo(queue[i]);
+  queue.slice(i + 1, i + 3).forEach(w => { const j = idxOf(w); if (j >= 0) loadLyrics(j).catch(() => {}); });
   return true;
 }
 
@@ -245,8 +248,8 @@ export async function startReview() {
   allRight = 0; allWrong = 0; allRelearn = 0; allSkipped = 0;
   quizWord = null; answered = false; quizOptions = []; quizWords = []; quizCorrect = -1;
   setMode('review');
-  if (!go(0)) { exitReview(); return; }
   state = 'reviewing';
+  if (!go(0)) { exitReview(); return; }
   progress();
   track('review-start', { total: queue.length });
 }

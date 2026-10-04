@@ -1,9 +1,9 @@
-import { DATA, state, trial } from './bank.js?v=staging-c8a064e';
-import { store, fmt, isMobile } from './util.js?v=staging-c8a064e';
-import { track } from './track.js?v=staging-c8a064e';
-import { loadLyrics, fillLyrics } from './lyrics.js?v=staging-c8a064e';
-import { showGloss, hideGloss } from './gloss.js?v=staging-c8a064e';
-import { deskStage, carousel, markCards, fillSlides } from './stage.js?v=staging-c8a064e';
+import { DATA, state, trial } from './bank.js?v=staging-0f52a63';
+import { store, fmt, isMobile } from './util.js?v=staging-0f52a63';
+import { track } from './track.js?v=staging-0f52a63';
+import { loadLyrics, fillLyrics } from './lyrics.js?v=staging-0f52a63';
+import { showGloss, hideGloss } from './gloss.js?v=staging-0f52a63';
+import { deskStage, carousel, markCards, fillSlides } from './stage.js?v=staging-0f52a63';
 
 const $ = s => document.querySelector(s);
 export const P = { i: -1, root: null, L: null, raf: 0, playing: false, loading: false, curLine: -1, timer: 0, token: 0 };
@@ -96,7 +96,7 @@ export async function play(i, from) {
     && w === (window.__stwLearnWord?.() ?? window.__stwReviewWord?.());
   if (inSession && window.__stwLearnWord?.() == null) markLearned(w);
   P.raf = requestAnimationFrame(frame);
-  preload(i + 1); preload(i + 2);
+  if (!(window.__stwLearnPlaylist?.() || window.__stwReviewPlaylist?.())) { preload(i + 1); preload(i + 2); }
 }
 
 function preload(i) { if (i < DATA.length) loadLyrics(i).catch(() => {}); }

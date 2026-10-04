@@ -1,4 +1,4 @@
-import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-c8a064e';
+import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-0f52a63';
 
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

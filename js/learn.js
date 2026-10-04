@@ -1,8 +1,10 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-c8a064e';
-import { track } from './track.js?v=staging-c8a064e';
-import { markLearned } from './player.js?v=staging-c8a064e';
-import { buildQuizOptions } from './review.js?v=staging-c8a064e';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-c8a064e';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-0f52a63';
+import { track } from './track.js?v=staging-0f52a63';
+import { markLearned } from './player.js?v=staging-0f52a63';
+import { buildQuizOptions } from './review.js?v=staging-0f52a63';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-0f52a63';
+import { idxOf } from './bank.js?v=staging-0f52a63';
+import { loadLyrics } from './lyrics.js?v=staging-0f52a63';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -110,6 +112,14 @@ function go(i) {
   const know = document.getElementById('rvKnow');
   if (know) know.disabled = false;
   window.__stwLearnGo(queue[i]);
+  const done = new Set(readDone());
+  for (let k = i + 1, n = 0; k < queue.length && n < 2; k++) {
+    if (done.has(queue[k])) continue;
+    const j = idxOf(queue[k]);
+    if (j < 0) continue;
+    loadLyrics(j).catch(() => {});
+    n++;
+  }
   return true;
 }
 
