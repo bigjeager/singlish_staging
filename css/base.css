@@ -147,6 +147,10 @@ body.is-playing .deck-prog{opacity:1}
 .st-ipa:hover{background:var(--ink);color:var(--bg)}
 .st-mean{margin:0;font-size:17px;font-weight:700}
 .st-en{margin:-4px 0 0;color:var(--muted);font-size:14px}
+/* 词面信息区容器（stage 的主子元素层）：桌面只承接原 .stage 的 gap:10 节奏，布局语义不变；
+   移动端（phone 断点）升格为溢出阀门——歌词改固定带后，超长词面在卡内自滚，
+   不再把歌词顶出卡底被 carousel 硬裁剪（拉伸 flex 项的内溢出不进 slide 滚动区） */
+.st-body{display:flex;flex-direction:column;gap:10px;min-width:0}
 
 .lyrics{position:relative;height:190px;overflow:hidden;scroll-behavior:smooth;margin:4px -4px 0;padding:0 4px;user-select:none;-webkit-user-select:none;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}   /* F2: 程序赋 scrollTop 时平滑跟随 */
 .lyrics-in{padding:6px 0;transition:transform .55s cubic-bezier(.3,.7,.3,1)}
@@ -207,7 +211,7 @@ body.is-loading .eq i{animation:eq .8s ease-in-out infinite alternate}
 @media (max-width:899px){
   html{height:100%;overflow:hidden;overscroll-behavior:none}
   body{overflow:hidden;display:flex;flex-direction:column;height:100%;position:fixed;inset:0;overscroll-behavior:none}
-  .top{padding:10px 16px;gap:10px;flex:none}
+  .top{padding:6px 16px;gap:10px;flex:none}
   .logo h1{font-size:21px}
   .tagline,.prog-bar{display:none}
   .top .logo{flex:none}
@@ -224,13 +228,18 @@ body.is-loading .eq i{animation:eq .8s ease-in-out infinite alternate}
   #deskStage,.hint,.foot{display:none}
   /* 词为中心（与桌面同序）：轮播（词卡+歌词）在上，合并播放卡（信息+控制行）流内沉底 */
   .carousel{order:1}
-  /* 控制行已并卡（无悬浮控制条）：底部让位从 100px 收成 14px+安全区，高度 auto 内容自适应 */
-  .aside > .deck{order:3;flex:none;align-self:stretch;width:auto;margin:0 16px calc(14px + env(safe-area-inset-bottom,0px));border-radius:22px;height:auto;padding:12px 14px 10px}
+  /* 控制行已并卡（无悬浮控制条）：底部让位从 100px 收成 14px+安全区，高度 auto 内容自适应。
+     2026-10-04 歌词固定带工单：会话内歌词要与词面同屏，deck 再压一轮——padding/gap/CD 全收，
+     片段徽章与歌名同步紧凑化（字号/padding），歌名移动端单行截断 */
+  .aside > .deck{order:3;flex:none;align-self:stretch;width:auto;margin:0 16px calc(10px + env(safe-area-inset-bottom,0px));border-radius:22px;height:auto;padding:10px 14px 8px;gap:8px}
   /* 高 auto 下 .deck-cd 的 height:100% 失去参照（塌陷/被原尺寸撑爆），给固定大小，宽由 aspect-ratio:1 推出 */
-  .deck-cd{height:72px}
+  .deck-cd{height:56px}
   .deck-info a .long{display:none}
-  .deck-info{align-self:center}
-  .clip{margin-bottom:2px}
+  .deck-info{align-self:center;gap:3px}
+  .deck-info b{-webkit-line-clamp:1}
+  .deck-info a{margin-top:0}
+  .aside > .deck .clip{margin-bottom:0;font-size:11px;padding:1px 8px}
+  .aside > .deck .ctl{padding-top:4px}
   /* 词表面板（2026-09-30 用户定调：标题区完全固定不动）——面板改 flex 列不滚动，
      标题/筛选/统计静置，唯一滚动区是 .grid（占位推卡式布局，弃 sticky 吸附方案） */
   .browser{position:fixed;inset:0;z-index:40;background:var(--bg);display:none;flex-direction:column;overflow:hidden;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 0}
@@ -243,10 +252,22 @@ body.is-loading .eq i{animation:eq .8s ease-in-out infinite alternate}
   /* padding-bottom 不再给固定播放器让位（deck 已进文档流垫在下面）——这 ~84px 还给词卡（用户 2026-09-28：卡片撑大） */
   .carousel{display:flex;flex:1;min-height:0;width:100%;min-width:0;max-width:100vw;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none}
   .carousel::-webkit-scrollbar{display:none}
-  .slide{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;padding:12px 16px 0;display:flex;overflow-y:auto}
-  .slide .stage{flex:1;padding:18px;gap:10px;min-height:100%;border-radius:24px}
-  .st-word{font-size:44px}
-  .slide .lyrics{height:auto;flex:1;min-height:150px}
+  .slide{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;padding:6px 16px 0;display:flex;overflow:hidden}
+  .slide .stage{flex:1;padding:10px 18px 8px;gap:7px;min-height:100%;border-radius:24px}
+  /* ---------- 歌词固定带（2026-10-04 工单：会话内歌词被挤到卡底外硬裁剪且不可滚） ----------
+     旧模型 .slide{overflow-y:auto} 依赖卡高超窗滚动让出歌词——实测拉伸 flex 项（.stage）的内部
+     溢出不进 slide 的 scrollHeight，超出的歌词直接被 carousel 裁掉（390×668 实测歌词 100% 不可见）。
+     新模型：歌词 flex:1 + min-height 随视口浮动（22dvh，140–200 兜底）永远在折叠线上方；
+     词面信息收进 .st-body 作溢出阀门，超高时卡内自滚，次要信息（例句/搭配/形态注）让位。
+     卡内滚动条全隐，手势与轮播横滑按轴向天然分流 */
+  .slide .st-body{flex:0 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;gap:6px;scrollbar-width:none}
+  .slide .st-body::-webkit-scrollbar{display:none}
+  .slide .st-word{font-size:36px}
+  /* 音标 pill 与释义并排（F16 拆行是桌面层级方案；移动会话竖向预算紧张，行内同权更省 34px） */
+  .slide .st-row{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 12px}
+  .slide .st-tip{padding:6px 10px}
+  .slide .lyrics{flex:1 1 0;height:auto;min-height:clamp(140px,21dvh,200px)}
+  .stage.live .lyrics-in{padding:40px 0}
   .ln{font-size:19px}
   /* .ctl 已随播放卡流内（合并卡）：原 position:fixed 底部悬浮规则整段拆除，尺寸/玻璃底直接吃桌面值 */
   /* ---------- W4（2026-09-30 工单）：移动端会话内关键触控目标命中区 ≥44×44 ----------

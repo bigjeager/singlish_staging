@@ -1,0 +1,30 @@
+.DS_Store
+node_modules
+# model weights never go in the repo (whisper etc.)
+*.bin
+*.gguf
+*.ggml
+*.pt
+*.onnx
+*.safetensors
+*.mlmodelc/
+models/
+# temporary test pages
+_*.html
+
+# QA/journey 过程产物（截图+记录）与 Supabase CLI 临时目录——历次均不入库
+qa_journey/
+qa_journey_*/
+qa_hy_journey/
+user_journey/
+supabase/.temp/
+
+# ZCode 本地会话目录
+.zcode/
+.zcodeignore
+
+# 其他本地工具目录
+.workbuddy-ai/
+
+# git worktree 统一开在仓库内 .workingtree/（不出上层目录）
+.workingtree/

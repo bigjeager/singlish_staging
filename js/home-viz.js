@@ -1,4 +1,4 @@
-import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-1b6b118';
+import { ALL, inDict, trial, trialMeta } from './bank.js?v=staging-ac923ae';
 
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
 const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];

@@ -1,6 +1,6 @@
-import { ALL, DATA, state } from './bank.js?v=staging-1b6b118';
-import { DICT_NAME, esc, pad } from './util.js?v=staging-1b6b118';
-import { P, deferAdvance } from './player.js?v=staging-1b6b118';
+import { ALL, DATA, state } from './bank.js?v=staging-ac923ae';
+import { DICT_NAME, esc, pad } from './util.js?v=staging-ac923ae';
+import { P, deferAdvance } from './player.js?v=staging-ac923ae';
 
 export const grid = document.querySelector('#grid');
 export const deskStage = document.querySelector('#deskStage');
@@ -14,13 +14,15 @@ export function stageHTML(i) {
   const e = DATA[i];
   const dots = e.nclips > 1 ? `<div class="clip-dots" role="group" aria-label="这个词的歌曲（上下滑动或 ↑↓ 切换）">${e.clipTitles.map((c, k) => `<button type="button" class="clip-dot${k === e.ci ? ' on' : ''}" data-clipto="${esc(e.word)}:${k}" aria-label="第 ${k + 1} 首：${esc(c.t)}" title="${esc(c.t)} · ${esc(c.a)}"></button>`).join('')}</div>` : '';
   return `<article class="stage" data-i="${i}">${dots}
-    <div class="st-top"><span class="pill band">${e.tags.includes('ielts') ? `雅思 ${esc(e.band)}` : esc(e.tags.map(t => DICT_NAME[t]).join('·'))}</span><span class="pill">${esc(e.pos)}</span><span class="no">#${pad(e.no || i + 1)}</span><button type="button" class="st-share st-fav" data-fav="${esc(e.word)}" aria-pressed="${state.fav.has(e.word)}" aria-label="收藏这个词" title="收藏到生词本">${state.fav.has(e.word) ? '★' : '☆'}</button><button type="button" class="st-share" data-share="${esc(e.word)}" aria-label="分享这个词" title="生成分享图">${shareIco}</button></div>
-    <h2 class="st-word">${esc(e.word)}</h2>
-    <div class="st-row"><button class="st-ipa" type="button" data-say="${esc(e.word)}" aria-label="朗读 ${esc(e.word)}">${spk}<span>${esc(e.phonetic)}</span></button><p class="st-mean">${esc(e.meaning)}</p></div>
-    <p class="st-mean-hint">释义已隐藏，先听歌再作答</p>
-    ${e.en ? `<p class="st-en">${esc(e.en)}</p>` : ''}
-    ${e.tip ? `<div class="st-tip"><b>搭配</b>${esc(e.tip)}</div>` : ''}
-    ${e.formNote ? `<p class="st-note">${esc(e.formNote)}</p>` : ''}
+    <div class="st-body">
+      <div class="st-top"><span class="pill band">${e.tags.includes('ielts') ? `雅思 ${esc(e.band)}` : esc(e.tags.map(t => DICT_NAME[t]).join('·'))}</span><span class="pill">${esc(e.pos)}</span><span class="no">#${pad(e.no || i + 1)}</span><button type="button" class="st-share st-fav" data-fav="${esc(e.word)}" aria-pressed="${state.fav.has(e.word)}" aria-label="收藏这个词" title="收藏到生词本">${state.fav.has(e.word) ? '★' : '☆'}</button><button type="button" class="st-share" data-share="${esc(e.word)}" aria-label="分享这个词" title="生成分享图">${shareIco}</button></div>
+      <h2 class="st-word">${esc(e.word)}</h2>
+      <div class="st-row"><button class="st-ipa" type="button" data-say="${esc(e.word)}" aria-label="朗读 ${esc(e.word)}">${spk}<span>${esc(e.phonetic)}</span></button><p class="st-mean">${esc(e.meaning)}</p></div>
+      <p class="st-mean-hint">释义已隐藏，先听歌再作答</p>
+      ${e.en ? `<p class="st-en">${esc(e.en)}</p>` : ''}
+      ${e.tip ? `<div class="st-tip"><b>搭配</b>${esc(e.tip)}</div>` : ''}
+      ${e.formNote ? `<p class="st-note">${esc(e.formNote)}</p>` : ''}
+    </div>
     <div class="lyrics"><div class="lyrics-in"><p class="lyr-msg">正在加载歌词…</p></div></div>
   </article>`;
 }

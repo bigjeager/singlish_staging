@@ -76,10 +76,12 @@
 .learn-btn:disabled:hover{background:var(--glass);transform:none}
 @media (max-width:899px){
   /* phones: 任务卡置顶（用户 2026-09-28 定调）——aside 是 display:contents（css/base.css:193），
-     本卡随 .app 列参与 order 排序，落在词卡（order:1）之前；底部让位给沉底的 deck 歌曲横幅 */
-  .learn-row{order:-2;margin:10px 16px 0;width:auto;align-self:stretch;padding:4px 10px 4px 8px}   /* stretch 同 deck：不设会被内容宽度收缩成半宽；position 沿用基类 relative——底边发丝线靠它定位 */
-  /* 复习三键：歌词（carousel order:1）与 deck（order:3）之间；与卡/deck 各留一点间隙即可（用户定调：卡要大，间隙小） */
-  .review-ops{order:2;margin:8px 16px 10px;align-self:stretch}
+     本卡随 .app 列参与 order 排序，落在词卡（order:1）之前；底部让位给沉底的 deck 歌曲横幅。
+     2026-10-04 歌词固定带工单：上边距 10→6，给会话歌词让竖向预算 */
+  .learn-row{order:-2;margin:4px 16px 0;width:auto;align-self:stretch;padding:4px 10px 4px 8px}   /* stretch 同 deck：不设会被内容宽度收缩成半宽；position 沿用基类 relative——底边发丝线靠它定位 */
+  /* 复习三键：歌词（carousel order:1）与 deck（order:3）之间；与卡/deck 各留一点间隙即可（用户定调：卡要大，间隙小）；
+     padding 7→5、边距 8/10→6/8 同上，按钮命中区 44 不动 */
+  .review-ops{order:2;margin:4px 16px 6px;align-self:stretch;padding:5px 8px}
   /* ---------- W4（2026-09-30 工单）：移动端会话条 / 计划向导触控目标 ≥44×44（仅移动断点，桌面零变化） ---------- */
   .home-back{width:44px;height:44px}   /* 32×32 → 44×44；.learn-row padding 同步收窄（4/4），行高维持 52px 不跳 */
   .learn-btn{min-height:44px}          /* 高 ~40 → 44（视觉仅按钮增高 4px） */
@@ -157,6 +159,11 @@ body.stw-study .st-mean-hint{display:block;visibility:hidden}
    live 态上下各 70px 的呼吸留白占掉近八成——复习/学习态收窄到 40px，多让 ~60px 给歌词行，
    当前行居中后上下仍有余量，不再半行裁切 */
 body.stw-review .stage.live .lyrics-in,body.stw-study .stage.live .lyrics-in{padding:40px 0}
+/* 歌词固定带工单（2026-10-04）：移动端歌词带收到 ~140-200px，stw 态呼吸留白再收一档（40→28），
+   当前行上下各多让 ~半行给歌词；必须放在上面基类之后的移动断点里，同特异性源序取胜 */
+@media (max-width:899px){
+  body.stw-review .stage.live .lyrics-in,body.stw-study .stage.live .lyrics-in{padding:28px 0}
+}
 /* 复习手动三键（docs/learn-mode.md §4）：歌词与歌曲横幅之间，复习态与不认识后的学习态都露出；
    包一层玻璃卡与上方会话条同族（用户 2026-09-28：框起来更清晰）；
    认识=主操作（渐变），不认识=玻璃胶囊，跳过=幽灵描边胶囊（2026-09-29：纯文字可点性差，加描边与「重学」同族） */
