@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-9d3c5bf">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-9d3c5bf">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-9d3c5bf">
-  <link rel="stylesheet" href="./css/home.css?v=staging-9d3c5bf">
+<link rel="stylesheet" href="./css/base.css?v=staging-a241178">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-a241178">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-a241178">
+  <link rel="stylesheet" href="./css/home.css?v=staging-a241178">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -285,6 +285,13 @@
     <button type="button" class="auth-x" id="feedbackClose" aria-label="关闭">×</button>
     <h3>意见反馈</h3>
     <p class="feedback-hint">用着不顺手或想要的功能，写下来告诉我们</p>
+    <p class="feedback-hint fb-word" id="feedbackWord" hidden></p>
+    <div class="fb-scenes" id="fbScenes" role="group" aria-label="常见场景">
+      <button type="button" class="fb-scene" data-text="唱到的意思和释义不符">意思对不上</button>
+      <button type="button" class="fb-scene" data-text="释义有误">释义有误</button>
+      <button type="button" class="fb-scene" data-text="搭配或例句有误">搭配有误</button>
+      <button type="button" class="fb-scene" data-text="">其他</button>
+    </div>
     <form id="feedbackForm">
       <textarea id="feedbackText" class="auth-input feedback-text" rows="4" maxlength="500" placeholder="想说的都写在这里"></textarea>
       <div class="feedback-meta"><span id="feedbackCount">0/500</span></div>
@@ -449,7 +456,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-9d3c5bf"></script>
+<script type="module" src="./js/main.js?v=staging-a241178"></script>
 
 
 

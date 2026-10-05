@@ -1,4 +1,4 @@
-import { AUTH_CONFIG } from './config.js?v=staging-9d3c5bf';
+import { AUTH_CONFIG } from './config.js?v=staging-a241178';
 
 (() => {
 const KEY = 'stw.auth.session';
@@ -8,12 +8,14 @@ const modal = $('feedbackModal'), entryBtn = $('profileFeedbackBtn');
 if (!AUTH_CONFIG.url || !AUTH_CONFIG.anonKey || !entryBtn || !modal) return;
 
 const textEl = $('feedbackText'), form = $('feedbackForm'), submitBtn = $('feedbackSubmit'),
-  errEl = $('feedbackErr'), countEl = $('feedbackCount'), closeBtn = $('feedbackClose');
+  errEl = $('feedbackErr'), countEl = $('feedbackCount'), closeBtn = $('feedbackClose'),
+  wordEl = $('feedbackWord'), scenes = $('fbScenes');
 
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
 const headers = () => ({ 'Content-Type': 'application/json', apikey: AUTH_CONFIG.anonKey, Authorization: 'Bearer ' + read()?.access_token });
 
 let userId = null;
+let context = null;
 
 const OUT_MS = (() => { const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g6-dur-out')); return v > 0 ? Math.round(v * 1000) : 200; })();
 const REDUCE = matchMedia('(prefers-reduced-motion: reduce)');
@@ -25,10 +27,16 @@ function resetForm() {
   errEl.textContent = '';
   submitBtn.disabled = false;
   submitBtn.textContent = '提交';
+  scenes?.querySelectorAll('.fb-scene[aria-pressed="true"]').forEach(b => b.setAttribute('aria-pressed', 'false'));
 }
 
-function openFeedback() {
+function openFeedback(word) {
   if (closing) { clearTimeout(closeT); closing = false; modal.classList.remove('g6-out'); }
+  context = word || null;
+  if (wordEl) {
+    wordEl.textContent = context ? `关于单词「${context}」——选个场景，或直接描述` : '';
+    wordEl.hidden = !context;
+  }
   resetForm(); modal.hidden = false; textEl.focus();
 }
 
@@ -52,6 +60,16 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hid
 
 textEl.addEventListener('input', () => { countEl.textContent = `${textEl.value.length}/500`; });
 
+scenes?.addEventListener('click', e => {
+  const b = e.target.closest('.fb-scene'); if (!b) return;
+  const on = b.getAttribute('aria-pressed') !== 'true';
+  scenes.querySelectorAll('.fb-scene').forEach(x => x.setAttribute('aria-pressed', 'false'));
+  b.setAttribute('aria-pressed', 'true');
+  textEl.value = on ? b.dataset.text : '';
+  countEl.textContent = `${textEl.value.length}/500`;
+  textEl.focus();
+});
+
 form.addEventListener('submit', async e => {
   e.preventDefault(); errEl.textContent = '';
   if (submitBtn.disabled) return;
@@ -63,16 +81,24 @@ form.addEventListener('submit', async e => {
   try {
     const res = await fetch(`${AUTH_CONFIG.url}/rest/v1/feedback`, {
       method: 'POST', headers: headers(),
-      body: JSON.stringify([{ user_id: userId, content }])
+      body: JSON.stringify([{ user_id: userId, content, ...(context ? { context } : {}) }])
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     submitBtn.textContent = '已提交，谢谢';
+    context = null;
     setTimeout(closeFeedback, 800);
   } catch {
     errEl.textContent = '提交失败，请稍后再试';
     submitBtn.disabled = false;
     submitBtn.textContent = '提交';
   }
+});
+
+window.addEventListener('stw:word-feedback', e => {
+  const w = String(e.detail?.word || '').slice(0, 64);
+  if (!w) return;
+  window.__stwCloseProfile?.();
+  openFeedback(w);
 });
 
 window.addEventListener('stw:auth', e => {

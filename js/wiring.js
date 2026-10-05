@@ -1,11 +1,11 @@
-import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-9d3c5bf';
-import { store, isMobile } from './util.js?v=staging-9d3c5bf';
-import { track } from './track.js?v=staging-9d3c5bf';
-import { loadLyrics } from './lyrics.js?v=staging-9d3c5bf';
-import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-9d3c5bf';
-import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-9d3c5bf';
-import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-9d3c5bf';
-import { openShare } from './share.js?v=staging-9d3c5bf';
+import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-a241178';
+import { store, isMobile } from './util.js?v=staging-a241178';
+import { track } from './track.js?v=staging-a241178';
+import { loadLyrics } from './lyrics.js?v=staging-a241178';
+import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-a241178';
+import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-a241178';
+import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-a241178';
+import { openShare } from './share.js?v=staging-a241178';
 
 function $(s) { return document.querySelector(s); }
 
@@ -133,6 +133,12 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-share]'); if (!b) return;
   if (document.body.classList.contains('stw-review')) return;
   openShare(b.dataset.share);
+});
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-feedback]'); if (!b) return;
+  if (trial) { window.__stwLoginPrompt?.('feedback'); return; }
+  window.dispatchEvent(new CustomEvent('stw:word-feedback', { detail: { word: b.dataset.feedback } }));
 });
 
 document.addEventListener('click', e => {
