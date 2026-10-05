@@ -115,12 +115,18 @@ body.guest .guest-note{display:block}
 .deck-bg{position:absolute;inset:-20%;background:center/cover no-repeat;filter:blur(40px) saturate(1.6) brightness(.7);transition:background-image .6s}
 .deck-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,rgba(11,10,20,.25),rgba(11,10,20,.8) 70%)}
 .deck-main{position:relative;z-index:1;flex:1;min-height:0;display:flex;align-items:center;gap:16px}
-/* the cover itself is the CD: same disc treatment as the cards, spinning while a clip plays */
+/* the cover itself is the CD: same disc treatment as the cards, spinning while a clip plays.
+   旋转挂在 img 上而非 .deck-cd——盘面已收编为播放/暂停/重播钮（.cd-ctl），钮不能跟着转；
+   ::after 纹理（径向渐变）旋转对称，挪轴后视觉不变 */
 .deck-cd{position:relative;flex:none;height:100%;aspect-ratio:1;z-index:1;border-radius:50%;overflow:hidden;background:#111;
-  box-shadow:0 0 0 6px rgba(0,0,0,.55),0 14px 40px rgba(0,0,0,.6);animation:spin 5s linear infinite;animation-play-state:paused}
-body.is-playing .deck-cd{animation-play-state:running}
-.deck-cd img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.15)}
+  box-shadow:0 0 0 6px rgba(0,0,0,.55),0 14px 40px rgba(0,0,0,.6)}
+.deck-cd img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.15);animation:spin 5s linear infinite;animation-play-state:paused}
+body.is-playing .deck-cd img{animation-play-state:running}
 .deck-cd::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,#15121F 0 6%,rgba(0,0,0,.35) 6.5% 13%,transparent 13.5%),repeating-radial-gradient(circle,rgba(0,0,0,.14) 0 1px,transparent 1px 4px)}
+.cd-ctl{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;border:0;padding:0;border-radius:50%;background:transparent;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cd-ctl svg{filter:drop-shadow(0 1px 8px rgba(0,0,0,.65))}
+.cd-ctl:hover{background:rgba(8,6,16,.32);backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px)}
+.cd-ctl:focus-visible{outline:2px solid var(--hot);outline-offset:3px}
 .deck-info{position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;gap:4px;align-self:flex-end}
 .deck-info b{font:800 19px/1.1 var(--f-display);letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .deck-info > span{font-size:13px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -193,6 +199,23 @@ body.is-loading .eq i{animation:eq .8s ease-in-out infinite alternate}
 @keyframes pulse{from{opacity:.35}to{opacity:1}}
 .ctl .tog[aria-pressed="true"],.ctl .tog[aria-pressed="true"]:hover{color:var(--hot);background:rgba(255,77,141,.16);box-shadow:inset 0 0 0 1px rgba(255,77,141,.35)}
 .ctl .time{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 会话态（学习/复习）传输行整排退役：播放/暂停/重播收进黑胶盘（.cd-ctl 三态），
+   上一词/下一词由会话键行与滑卡/键盘承担，随机/循环/计时属自由浏览语境——功能全局不丢 */
+body.stw-learn .ctl,body.stw-review .ctl,body.stw-study .ctl{display:none}
+/* 桌面会话 deck 压实（2026-10-05 用户定调：传输行退役后组件还照旧高、四行字回潮）：
+   把 2026-10-04 移动端二轮减行的排版（PR #14「四行字太多」——片段徽章去、收成
+   标题/歌手+跳转两行、链接缩短）延伸到桌面会话态；卡高 auto 随两行内容走，
+   盘 96px 保住点按面（原 196-216 高卡连 ctl 一起算 ~80px 还给词卡/歌词）。
+   只圈 min-width:900px——移动断点已有同款值，避免盖掉移动端 56px 盘 */
+@media (min-width:900px){
+  body:is(.stw-learn,.stw-review,.stw-study) .aside > .deck{height:auto;padding:10px 14px 8px;gap:8px;border-radius:22px}
+  body:is(.stw-learn,.stw-review,.stw-study) .deck-cd{height:96px}
+  body:is(.stw-learn,.stw-review,.stw-study) .aside > .deck .clip{display:none}
+  body:is(.stw-learn,.stw-review,.stw-study) .deck-info{align-self:center;flex:1;min-width:0;flex-flow:row wrap;align-items:baseline;gap:2px 10px}
+  body:is(.stw-learn,.stw-review,.stw-study) .deck-info b{flex:1 1 100%;-webkit-line-clamp:1}
+  body:is(.stw-learn,.stw-review,.stw-study) .deck-info a{margin-left:auto;margin-top:0}
+  body:is(.stw-learn,.stw-review,.stw-study) .deck-info a .long{display:none}
+}
 .hint{font-size:12px;color:var(--muted);margin:0;padding:0 8px}
 .hint kbd{font:600 11px var(--f-body);border:1px solid var(--stroke-2);border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--soft)}
 .foot{grid-column:1;font-size:12px;color:var(--dim);border-top:1px solid var(--stroke);padding-top:16px;max-width:80ch}

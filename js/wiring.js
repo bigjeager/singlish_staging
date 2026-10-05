@@ -1,11 +1,11 @@
-import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-9dd816f';
-import { store, isMobile } from './util.js?v=staging-9dd816f';
-import { track } from './track.js?v=staging-9dd816f';
-import { loadLyrics } from './lyrics.js?v=staging-9dd816f';
-import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-9dd816f';
-import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-9dd816f';
-import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-9dd816f';
-import { openShare } from './share.js?v=staging-9dd816f';
+import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-f48b6dd';
+import { store, isMobile } from './util.js?v=staging-f48b6dd';
+import { track } from './track.js?v=staging-f48b6dd';
+import { loadLyrics } from './lyrics.js?v=staging-f48b6dd';
+import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-f48b6dd';
+import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-f48b6dd';
+import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-f48b6dd';
+import { openShare } from './share.js?v=staging-f48b6dd';
 
 function $(s) { return document.querySelector(s); }
 
@@ -101,6 +101,7 @@ $('#play').addEventListener('click', () => { primeAudio(state.cur); state.starte
 $('#prev').addEventListener('click', () => { primeAudio(state.cur); state.started = true; sessionStep(-1); });
 $('#next').addEventListener('click', () => { primeAudio(state.cur); state.started = true; sessionStep(1); });
 $('#replay').addEventListener('click', () => { primeAudio(state.cur); state.started = true; play(state.cur); });
+$('#cdCtl').addEventListener('click', () => { primeAudio(state.cur); state.started = true; if (P.ended) play(state.cur); else toggle(); });
 
 const tog = (id, key) => { const b = $(id); b.setAttribute('aria-pressed', !!state[key]); b.addEventListener('click', () => { state[key] = !state[key]; b.setAttribute('aria-pressed', state[key]); if (key === 'shuffle') store.set('stw.shuffle', state.shuffle); }); };
 tog('#shuffle', 'shuffle'); tog('#loop', 'loop');

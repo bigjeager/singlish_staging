@@ -1,12 +1,12 @@
-import { DATA, state, trial } from './bank.js?v=staging-9dd816f';
-import { store, fmt, isMobile } from './util.js?v=staging-9dd816f';
-import { track } from './track.js?v=staging-9dd816f';
-import { loadLyrics, fillLyrics } from './lyrics.js?v=staging-9dd816f';
-import { showGloss, hideGloss } from './gloss.js?v=staging-9dd816f';
-import { deskStage, carousel, markCards, fillSlides } from './stage.js?v=staging-9dd816f';
+import { DATA, state, trial } from './bank.js?v=staging-f48b6dd';
+import { store, fmt, isMobile } from './util.js?v=staging-f48b6dd';
+import { track } from './track.js?v=staging-f48b6dd';
+import { loadLyrics, fillLyrics } from './lyrics.js?v=staging-f48b6dd';
+import { showGloss, hideGloss } from './gloss.js?v=staging-f48b6dd';
+import { deskStage, carousel, markCards, fillSlides } from './stage.js?v=staging-f48b6dd';
 
 const $ = s => document.querySelector(s);
-export const P = { i: -1, root: null, L: null, raf: 0, playing: false, loading: false, curLine: -1, timer: 0, token: 0 };
+export const P = { i: -1, root: null, L: null, raf: 0, playing: false, loading: false, ended: false, curLine: -1, timer: 0, token: 0 };
 const au = new Audio(); au.preload = 'auto';
 au.addEventListener('playing', () => { P.playing = true; setLoading(false); P.root?.querySelector('.play-err')?.remove(); });
 au.addEventListener('pause', () => { P.playing = false; setLoading(false); updateBtn(); });
@@ -78,6 +78,7 @@ export function markLearned(w) {
 }
 
 export async function play(i, from) {
+  P.ended = false;
   stop();
   setLoading(true);
   const token = P.token;
@@ -171,7 +172,7 @@ export function deferAdvance(ms = 2500) {
 
 function ended() {
   noteSung(P.i);
-  au.pause(); P.playing = false; updateBtn();
+  au.pause(); P.playing = false; P.ended = true; updateBtn();
   P.lineEls.forEach(l => { l.classList.remove('cur'); l.classList.add('past'); });
   const token = P.token;
   const wait = Math.max(900, holdUntil - Date.now());
@@ -192,11 +193,16 @@ export function updateBtn() {
   $('#icoPlay').toggleAttribute('hidden', on); $('#icoPause').toggleAttribute('hidden', !on);
   $('#play').setAttribute('aria-label', on ? '暂停' : P.loading ? '加载中' : '播放');
   document.body.classList.toggle('is-playing', on);
+  const cdEnded = !!P.ended && !on;
+  $('#cdIcoPlay').toggleAttribute('hidden', on || cdEnded);
+  $('#cdIcoPause').toggleAttribute('hidden', !on);
+  $('#cdIcoReplay').toggleAttribute('hidden', !cdEnded);
+  $('#cdCtl')?.setAttribute('aria-label', on ? '暂停' : cdEnded ? '重播片段' : P.loading ? '加载中' : '播放');
   markCards();
 }
 
 export function toggle() {
-  if (P.i !== state.cur || !P.L) return play(state.cur);
+  if (P.i !== state.cur || !P.L || P.ended) return play(state.cur);
   if (P.playing) { au.pause(); cancelAnimationFrame(P.raf); P.playing = false; }
   else if (P.root.classList.contains('live') && au.currentTime + DATA[P.i].offset < P.L.end - .2) {
     setLoading(true);

@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-9dd816f">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-9dd816f">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-9dd816f">
-  <link rel="stylesheet" href="./css/home.css?v=staging-9dd816f">
+<link rel="stylesheet" href="./css/base.css?v=staging-f48b6dd">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-f48b6dd">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-f48b6dd">
+  <link rel="stylesheet" href="./css/home.css?v=staging-f48b6dd">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -74,7 +74,7 @@
       <!-- 歌曲卡+控制条合一（用户反馈：两张独立卡太高挤歌词）：.deck-main 承载唱片与信息行，发丝线下 .ctl 控制行收底；
            id/类/SVG 零改动，js 与 e2e 全按 id 契约取 -->
       <div class="deck-main">
-        <div class="deck-cd"><img id="deckArt" alt=""></div>
+        <div class="deck-cd"><img id="deckArt" alt=""><button type="button" class="cd-ctl" id="cdCtl" aria-label="播放"><svg id="cdIcoPlay" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 4.8v14.4c0 .8.9 1.3 1.6.8l11-7.2a1 1 0 0 0 0-1.6l-11-7.2C8.9 3.5 8 4 8 4.8z"/></svg><svg id="cdIcoPause" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" hidden><rect x="6" y="4" width="4.5" height="16" rx="1.5"/><rect x="13.5" y="4" width="4.5" height="16" rx="1.5"/></svg><svg id="cdIcoReplay" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" hidden><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4"/></svg></button></div>
         <div class="deck-info"><span class="clip" id="clipTag">30 秒试听</span><b id="deckTitle"></b><span id="deckArtist"></span><a id="deckLink" href="#" target="_blank" rel="noopener"><span class="long">在 </span>Apple Music<span class="long"> 听完整首</span> ↗</a></div>
       </div>
       <div class="deck-prog"><i id="deckProg"></i></div>
@@ -449,7 +449,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-9dd816f"></script>
+<script type="module" src="./js/main.js?v=staging-f48b6dd"></script>
 
 
 

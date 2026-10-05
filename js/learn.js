@@ -1,10 +1,10 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-9dd816f';
-import { track } from './track.js?v=staging-9dd816f';
-import { markLearned } from './player.js?v=staging-9dd816f';
-import { buildQuizOptions } from './review.js?v=staging-9dd816f';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-9dd816f';
-import { idxOf } from './bank.js?v=staging-9dd816f';
-import { loadLyrics } from './lyrics.js?v=staging-9dd816f';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-f48b6dd';
+import { track } from './track.js?v=staging-f48b6dd';
+import { markLearned } from './player.js?v=staging-f48b6dd';
+import { buildQuizOptions } from './review.js?v=staging-f48b6dd';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-f48b6dd';
+import { idxOf } from './bank.js?v=staging-f48b6dd';
+import { loadLyrics } from './lyrics.js?v=staging-f48b6dd';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
