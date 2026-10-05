@@ -1,8 +1,8 @@
-import { DATA, idxOf, ensureDetail } from './bank.js?v=staging-77a4899';
-import { parseLrc } from './lyrics.js?v=staging-77a4899';
-import { esc } from './util.js?v=staging-77a4899';
-import { getUserWords, saveSrsState } from './plan-api.js?v=staging-77a4899';
-import { LADDER, addDays } from './review.js?v=staging-77a4899';
+import { DATA, idxOf, ensureDetail } from './bank.js?v=staging-9dd816f';
+import { parseLrc } from './lyrics.js?v=staging-9dd816f';
+import { esc } from './util.js?v=staging-9dd816f';
+import { getUserWords, saveSrsState } from './plan-api.js?v=staging-9dd816f';
+import { LADDER, addDays } from './review.js?v=staging-9dd816f';
 
 const FLASH_KEY = 'stw.flash.day';
 const LRC_MS = 10000;
@@ -198,8 +198,15 @@ function stopAudio() {
   try { au.pause(); } catch {}
 }
 
+function emitProgress() {
+  if (!pending) return;
+  const p = Math.min(1, Math.max(0, (au.currentTime - pending.at) / Math.max(1, pending.endAudio - pending.at)));
+  window.dispatchEvent(new CustomEvent('stw:flash-progress', { detail: { p } }));
+}
+
 au.addEventListener('error', () => { if (pending && !answered) abandonFlash(token); });
-au.addEventListener('timeupdate', () => { if (pending && !au.paused && au.currentTime >= pending.endAudio) { try { au.pause(); } catch {} } });
+au.addEventListener('timeupdate', () => { if (pending && !au.paused && au.currentTime >= pending.endAudio) { try { au.pause(); } catch {} } emitProgress(); });
+au.addEventListener('seeked', emitProgress);
 
 function beginFlash(prep, retry, type, my) {
   pending = { ...prep, retry, type };

@@ -1,9 +1,9 @@
-import { DATA, state, trial } from './bank.js?v=staging-77a4899';
-import { store, fmt, isMobile } from './util.js?v=staging-77a4899';
-import { track } from './track.js?v=staging-77a4899';
-import { loadLyrics, fillLyrics } from './lyrics.js?v=staging-77a4899';
-import { showGloss, hideGloss } from './gloss.js?v=staging-77a4899';
-import { deskStage, carousel, markCards, fillSlides } from './stage.js?v=staging-77a4899';
+import { DATA, state, trial } from './bank.js?v=staging-9dd816f';
+import { store, fmt, isMobile } from './util.js?v=staging-9dd816f';
+import { track } from './track.js?v=staging-9dd816f';
+import { loadLyrics, fillLyrics } from './lyrics.js?v=staging-9dd816f';
+import { showGloss, hideGloss } from './gloss.js?v=staging-9dd816f';
+import { deskStage, carousel, markCards, fillSlides } from './stage.js?v=staging-9dd816f';
 
 const $ = s => document.querySelector(s);
 export const P = { i: -1, root: null, L: null, raf: 0, playing: false, loading: false, curLine: -1, timer: 0, token: 0 };

@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-77a4899">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-77a4899">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-77a4899">
-  <link rel="stylesheet" href="./css/home.css?v=staging-77a4899">
+<link rel="stylesheet" href="./css/base.css?v=staging-9dd816f">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-9dd816f">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-9dd816f">
+  <link rel="stylesheet" href="./css/home.css?v=staging-9dd816f">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -34,7 +34,7 @@
   <div class="logo"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><h1>Sing<span>lish</span></h1></div>
   <p class="tagline">听歌记单词 · 每个考词都藏在一段流行歌里</p>
   <div class="grow"></div>
-  <div class="prog"><div class="prog-bar"><i id="progFill"></i></div><span><b id="doneCount">0</b> / <span id="totalCount">1571</span><span class="prog-word"> 已唱</span></span></div>
+  <div class="prog"><div class="prog-bar"><i id="progFill"></i></div><span><b id="doneCount">0</b> / <span id="totalCount">1571</span><span class="prog-word"> 已学</span></span></div>
   <button type="button" class="btn-auth" id="authBtn" hidden>登录</button>
 </header>
 
@@ -385,7 +385,7 @@
   <div class="flash-card">
     <div class="flash-head">
       <p class="quiz-tag" id="flashTag" hidden>闪回胶囊</p>
-      <button type="button" class="flash-ico flash-replay" id="flashReplay" title="重播——没听清就再来一遍"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5 6.8 9H3.8v6h3l4.2 3.5v-13z" fill="currentColor" stroke="none"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18.4 6.4a8 8 0 0 1 0 11.2"/></svg></button>
+      <button type="button" class="flash-ico flash-replay" id="flashReplay" title="重播——没听清就再来一遍"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5 6.8 9H3.8v6h3l4.2 3.5v-13z" fill="currentColor" stroke="none"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6"/><path d="M18.4 6.4a8 8 0 0 1 0 11.2"/></svg><svg class="flash-ring" viewBox="0 0 42 42" aria-hidden="true"><circle class="flash-ring-fg" id="flashRing" cx="21" cy="21" r="18.5" pathLength="100" transform="rotate(-90 21 21)"/></svg></button>
     </div>
     <p class="flash-ask" id="flashAsk">刚听的这个词是？</p>
     <p class="flash-lyric" id="flashLyric" hidden></p>
@@ -449,7 +449,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-77a4899"></script>
+<script type="module" src="./js/main.js?v=staging-9dd816f"></script>
 
 
 

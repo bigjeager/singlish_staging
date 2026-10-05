@@ -203,7 +203,10 @@ body.stw-learn .review-ops,body.stw-review .review-ops{display:flex}
    + 答后歌词行（选项上方，目标词 .xw 粉底高亮与歌词页同款） */
 button.flash-replay{cursor:pointer;padding:0}
 button.flash-replay:hover{transform:scale(1.08);color:var(--ink)}
-button.flash-replay:disabled{opacity:.45;cursor:default;transform:none}
+button.flash-replay:disabled{cursor:default;transform:none}
+button.flash-replay:disabled>svg:first-child{opacity:.45}
+.flash-ring{position:absolute;inset:-2px;width:calc(100% + 4px);height:calc(100% + 4px);pointer-events:none}
+.flash-ring-fg{fill:none;stroke:var(--hot);stroke-width:2;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100}
 /* 1003 用户反馈：胶囊标题与喇叭重播钮并一行——喇叭绝对定位居左，标题保持居中（b9a1510 意图随本提交在 main 落地） */
 .flash-head{position:relative;min-height:38px;display:flex;align-items:center;justify-content:center}
 .flash-head .quiz-tag{margin:0}

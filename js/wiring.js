@@ -1,11 +1,11 @@
-import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-77a4899';
-import { store, isMobile } from './util.js?v=staging-77a4899';
-import { track } from './track.js?v=staging-77a4899';
-import { loadLyrics } from './lyrics.js?v=staging-77a4899';
-import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-77a4899';
-import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-77a4899';
-import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-77a4899';
-import { openShare } from './share.js?v=staging-77a4899';
+import { ALL, DATA, state, trial, inDict, idxOf } from './bank.js?v=staging-9dd816f';
+import { store, isMobile } from './util.js?v=staging-9dd816f';
+import { track } from './track.js?v=staging-9dd816f';
+import { loadLyrics } from './lyrics.js?v=staging-9dd816f';
+import { grid, carousel, renderGrid, markCards } from './stage.js?v=staging-9dd816f';
+import { P, primeAudio, play, toggle, deferAdvance } from './player.js?v=staging-9dd816f';
+import { go, goNext, sessionStep, switchClip, applyDict, activeSession, setSessionNav } from './nav.js?v=staging-9dd816f';
+import { openShare } from './share.js?v=staging-9dd816f';
 
 function $(s) { return document.querySelector(s); }
 
@@ -287,9 +287,14 @@ window.addEventListener('stw:quiz-result', e => {
 
 window.addEventListener('stw:quiz-close', () => { quizPending++; $('#quizModal').hidden = true; $('#revealModal').hidden = true; $('#reviewOps').hidden = false; $('#quizNext').hidden = true; $('#quizOpts').classList.remove('opts-done'); wordEnter(); });
 
+const flashRing = $('#flashRing');
+const setFlashRing = p => { if (flashRing) flashRing.style.strokeDashoffset = (100 - Math.max(0, Math.min(1, p)) * 100).toFixed(2); };
+window.addEventListener('stw:flash-progress', e => setFlashRing(Number(e.detail?.p) || 0));
+
 window.addEventListener('stw:flash-show', e => {
   const opts = e.detail?.options;
   if (!Array.isArray(opts) || opts.length < 4) return;
+  setFlashRing(0);
   const from = $('#flashFrom');
   from.hidden = true;
   from.textContent = '';
@@ -340,7 +345,7 @@ window.addEventListener('stw:flash-result', e => {
   $('#flashReplay').disabled = true;
 });
 
-window.addEventListener('stw:flash-close', () => { $('#flashModal').hidden = true; $('#flashReplay').disabled = true; $('#flashTag').hidden = true; $('#flashOpts').classList.remove('opts-done'); wordEnter(); });
+window.addEventListener('stw:flash-close', () => { $('#flashModal').hidden = true; $('#flashReplay').disabled = true; $('#flashTag').hidden = true; $('#flashOpts').classList.remove('opts-done'); setFlashRing(0); wordEnter(); });
 $('#flashReplay').addEventListener('click', () => window.dispatchEvent(new CustomEvent('stw:flash-replay')));
 
 const learnMode = () => document.body.classList.contains('stw-learn');

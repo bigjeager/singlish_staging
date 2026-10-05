@@ -93,7 +93,7 @@ body.guest .guest-note{display:block}
 .card .mn{font-size:13px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .sg{margin-top:auto;padding-top:10px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .sg b{color:var(--soft);font-weight:600}
-.card.done .no::after{content:"  ✓ 已唱";color:var(--amber);letter-spacing:.04em}
+.card.done .no::after{content:"  ✓ 已学";color:var(--amber);letter-spacing:.04em}
 .card.on{border-color:transparent;background:linear-gradient(var(--bg),var(--bg)) padding-box,var(--grad) border-box;border:1.5px solid transparent}
 .card.on .w{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 .card .w.long{font-size:clamp(16px,4.6vw,21px);letter-spacing:-.035em;overflow-wrap:normal}

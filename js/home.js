@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-77a4899';
-import { trial, bankReady } from './bank.js?v=staging-77a4899';
-import { track } from './track.js?v=staging-77a4899';
-import { renderViz } from './home-viz.js?v=staging-77a4899';
+import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-9dd816f';
+import { trial, bankReady } from './bank.js?v=staging-9dd816f';
+import { track } from './track.js?v=staging-9dd816f';
+import { renderViz } from './home-viz.js?v=staging-9dd816f';
 
 const KEY = 'stw.auth.session';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
@@ -238,7 +238,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-77a4899') : import('./review.js?v=staging-77a4899')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-9dd816f') : import('./review.js?v=staging-9dd816f')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
