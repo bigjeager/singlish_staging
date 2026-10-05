@@ -1,7 +1,7 @@
-import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-f48b6dd';
-import { trial, bankReady } from './bank.js?v=staging-f48b6dd';
-import { track } from './track.js?v=staging-f48b6dd';
-import { renderViz } from './home-viz.js?v=staging-f48b6dd';
+import { getPlan, getCheckins, getUserWords, getHomeProgress } from './plan-api.js?v=staging-9d3c5bf';
+import { trial, bankReady } from './bank.js?v=staging-9d3c5bf';
+import { track } from './track.js?v=staging-9d3c5bf';
+import { renderViz } from './home-viz.js?v=staging-9d3c5bf';
 
 const KEY = 'stw.auth.session';
 const DICT_NAME = { ielts: '雅思', cet4: '四级', cet6: '六级', toefl: '托福' };
@@ -238,7 +238,7 @@ function promptLogin(reason) {
 const mods = {};
 async function load(name) {
   if (!mods[name]) {
-    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-f48b6dd') : import('./review.js?v=staging-f48b6dd')); }
+    try { mods[name] = await (name === 'learn' ? import('./learn.js?v=staging-9d3c5bf') : import('./review.js?v=staging-9d3c5bf')); }
     catch (err) { console.warn('home: ' + name + '.js import failed:', err); return null; }
   }
   return mods[name] || null;
@@ -270,6 +270,7 @@ async function onLearn() {
   }
   plan = p;
   const done = Array.isArray(lastUserRows) ? countTodayLearned(lastUserRows, today()) : 0;
+  document.body.classList.add('stw-learn');
   previewSessionBar(learnBarText(Number(p.daily_goal) || 0, done), learnBarPct(Number(p.daily_goal) || 0, done));
   close();
   await bankReady;
@@ -304,6 +305,7 @@ async function onReview() {
   if (!s?.access_token || !s?.user_id) { promptLogin('review'); return; }
   if (Array.isArray(lastUserRows) && !lastUserRows.some(r => r?.learned_at)) { nudgeNeverLearned(); return; }
   if (lastPending === 0) { nudgeReviewCard(); return; }
+  document.body.classList.add('stw-review');
   if (lastPending) previewSessionBar(`复习 0/${lastPending}`, 0);
   close();
   await bankReady;

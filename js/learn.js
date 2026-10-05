@@ -1,10 +1,10 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-f48b6dd';
-import { track } from './track.js?v=staging-f48b6dd';
-import { markLearned } from './player.js?v=staging-f48b6dd';
-import { buildQuizOptions } from './review.js?v=staging-f48b6dd';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-f48b6dd';
-import { idxOf } from './bank.js?v=staging-f48b6dd';
-import { loadLyrics } from './lyrics.js?v=staging-f48b6dd';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-9d3c5bf';
+import { track } from './track.js?v=staging-9d3c5bf';
+import { markLearned } from './player.js?v=staging-9d3c5bf';
+import { buildQuizOptions } from './review.js?v=staging-9d3c5bf';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-9d3c5bf';
+import { idxOf } from './bank.js?v=staging-9d3c5bf';
+import { loadLyrics } from './lyrics.js?v=staging-9d3c5bf';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -126,7 +126,12 @@ function go(i) {
 export async function startLearn() {
   const s = read(), uid = s?.user_id;
   if (!s?.access_token || !uid) { console.warn('learn: startLearn ignored — not logged in'); return; }
+  setLearnBody(true);
+  await startLearnBody(uid);
+  if (state !== 'learning') setLearnBody(false);
+}
 
+async function startLearnBody(uid) {
   const p = (await getPlan(uid)) || plan;
   if (!p?.dict || !p?.daily_goal) { emit('stw:need-plan'); return; }
   if (typeof window.__stwLearnWords !== 'function') { console.warn('learn: host hook __stwLearnWords missing'); return; }
@@ -365,6 +370,7 @@ async function onPlanSave(e) {
   const dict = String(e.detail?.dict || 'all');
   const goal = Number(e.detail?.goal) || 10;
   const autostart = e.detail?.autostart !== false;
+  if (autostart) setLearnBody(true);
   userId = uid;
   plan = { dict, daily_goal: goal };
   const ok = await savePlan(uid, dict, goal);
