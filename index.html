@@ -22,10 +22,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Gentium+Book+Plus&display=swap">
-<link rel="stylesheet" href="./css/base.css?v=staging-dc2ee67">
-  <link rel="stylesheet" href="./css/auth.css?v=staging-dc2ee67">
-  <link rel="stylesheet" href="./css/profile.css?v=staging-dc2ee67">
-  <link rel="stylesheet" href="./css/home.css?v=staging-dc2ee67">
+<link rel="stylesheet" href="./css/base.css?v=staging-87428fe">
+  <link rel="stylesheet" href="./css/auth.css?v=staging-87428fe">
+  <link rel="stylesheet" href="./css/profile.css?v=staging-87428fe">
+  <link rel="stylesheet" href="./css/home.css?v=staging-87428fe">
 </head>
 <body>
 <div class="ambient" aria-hidden="true"><i id="artA"></i><i id="artB"></i></div>
@@ -351,7 +351,9 @@
 
 <!-- daily check-in card (docs/learn-mode.md §3 W2): the two buttons dispatch stw:checkin-extra / stw:checkin-exit (js/app.js), the flow lives in js/learn.js.
      B5（2026-09-30 工单 P2）：「组」概念已退役，按钮文案改「再学 N 词」（N = daily_goal，js/app.js 收到
-     stw:checkin-done 时按 detail.goal 动态覆写；此处 10 只是静态初值） -->
+     stw:checkin-done 时按 detail.goal 动态覆写；此处 10 只是静态初值）。
+     2026-10-11 加学封顶：每次点「再学 N 词」只放行一组 N 词（js/learn.js extraBase 预算），
+     组满回到本卡重新提示，再点再续一组；打卡行每日只落一次，重提示不重复落库 -->
 <div class="auth" id="checkinModal" hidden role="dialog" aria-modal="true" aria-label="今日打卡完成">
   <div class="auth-card">
     <h3>今日打卡完成</h3>
@@ -456,7 +458,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
-<script type="module" src="./js/main.js?v=staging-dc2ee67"></script>
+<script type="module" src="./js/main.js?v=staging-87428fe"></script>
 
 
 

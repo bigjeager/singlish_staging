@@ -1,5 +1,5 @@
-import { AUTH_CONFIG } from './config.js?v=staging-dc2ee67';
-import { track } from './track.js?v=staging-dc2ee67';
+import { AUTH_CONFIG } from './config.js?v=staging-87428fe';
+import { track } from './track.js?v=staging-87428fe';
 
 (() => {
 const KEY = 'stw.auth.session';

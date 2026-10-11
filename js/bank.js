@@ -1,6 +1,6 @@
-import { AUTH_CONFIG } from './config.js?v=staging-dc2ee67';
-import { getWordClips } from './plan-api.js?v=staging-dc2ee67';
-import { store, useClip, expand } from './util.js?v=staging-dc2ee67';
+import { AUTH_CONFIG } from './config.js?v=staging-87428fe';
+import { getWordClips } from './plan-api.js?v=staging-87428fe';
+import { store, useClip, expand } from './util.js?v=staging-87428fe';
 
 export { useClip };
 

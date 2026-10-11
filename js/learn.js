@@ -1,10 +1,10 @@
-import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-dc2ee67';
-import { track } from './track.js?v=staging-dc2ee67';
-import { markLearned } from './player.js?v=staging-dc2ee67';
-import { buildQuizOptions } from './review.js?v=staging-dc2ee67';
-import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-dc2ee67';
-import { idxOf } from './bank.js?v=staging-dc2ee67';
-import { loadLyrics } from './lyrics.js?v=staging-dc2ee67';
+import { getPlan, savePlan, getCheckins, getUserWords, saveCheckinMark, saveLearnSeed, getQuizPool } from './plan-api.js?v=staging-87428fe';
+import { track } from './track.js?v=staging-87428fe';
+import { markLearned } from './player.js?v=staging-87428fe';
+import { buildQuizOptions } from './review.js?v=staging-87428fe';
+import { boot as flashBoot, drain as flashDrain, reset as flashReset, busy as flashBusy, enqueueWrong, flashStats } from './flashback.js?v=staging-87428fe';
+import { idxOf } from './bank.js?v=staging-87428fe';
+import { loadLyrics } from './lyrics.js?v=staging-87428fe';
 
 const KEY = 'stw.auth.session';
 const DONE_KEY = 'stw.done';
@@ -87,6 +87,7 @@ let queue = [];
 let plan = null;
 let userId = null;
 let checkinDone = false;
+let extraBase = -1;
 
 let poolCache = [];
 let poolMap = new Map();
@@ -146,6 +147,7 @@ async function startLearnBody(uid) {
 
   const [dayRows, checkinRows, pool] = await Promise.all([refreshDay(), getCheckins(uid), getQuizPool()]);
   checkinDone = Array.isArray(checkinRows) && checkinRows.some(r => r && r.day === today());
+  extraBase = checkinDone ? dayCount() : -1;
   if (Array.isArray(pool) && pool.length) {
     poolCache = pool;
     poolMap = new Map(pool.filter(e => e && e.word != null).map(e => [e.word, e.meaning]));
@@ -322,16 +324,21 @@ function settleGate() {
 async function maybeCheckin() {
   if (state !== 'learning') return;
   const goal = Number(plan?.daily_goal) || 0;
-  if (dayCount() < goal && pos < queue.length) return;
-  if (checkinDone) { renderBar(); return; }
+  const cap = checkinDone && extraBase >= 0 ? extraBase + goal : goal;
+  if (dayCount() < cap && pos < queue.length) return;
   state = 'checkin';
   setLearnBody(false);
-  const n = dayCount(), day = today();
-  checkinDone = true;
-  if (userId) await saveCheckinMark(userId, day);
-  else console.warn('learn: no user id — checkin row skipped');
-  emit('stw:checkin-done', { today: n, goal });
-  track('checkin-done', { today: n, goal });
+  if (!checkinDone) {
+    const n = dayCount(), day = today();
+    checkinDone = true;
+    if (userId) await saveCheckinMark(userId, day);
+    else console.warn('learn: no user id — checkin row skipped');
+    emit('stw:checkin-done', { today: n, goal });
+    track('checkin-done', { today: n, goal });
+  } else {
+    extraBase = -1;
+    emit('stw:checkin-done', { today: dayCount(), goal });
+  }
   renderBar();
 }
 
@@ -339,6 +346,7 @@ export function extraGroup() {
   if (state !== 'checkin') { console.warn('learn: extraGroup ignored — no finished group to extend'); return; }
   if (pos >= queue.length) { console.warn('learn: queue exhausted — no unlearned words left to extend'); return; }
   state = 'learning';
+  extraBase = dayCount();
   if (!go(pos)) { state = 'checkin'; return; }
   setLearnBody(true);
   showBar();
@@ -354,6 +362,7 @@ export function exitSession() {
   flashReset();
   if (quizWord) window.dispatchEvent(new CustomEvent('stw:quiz-close'));
   state = 'idle'; pos = 0; queue = []; cur = -1; pendingAdvance = false; replayWord = null;
+  extraBase = -1;
   quizWord = null; answered = false; quizOptions = []; quizWords = []; quizCorrect = -1; pendingAdvance = false;
   clearTimeout(gateTimer); gateTimer = 0;
   setLearnBody(false);

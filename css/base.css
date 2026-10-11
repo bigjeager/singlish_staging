@@ -253,8 +253,8 @@ body.stw-learn .ctl,body.stw-review .ctl,body.stw-study .ctl{display:none}
   .carousel{order:1}
   /* 控制行已并卡（无悬浮控制条）：底部让位从 100px 收成 14px+安全区，高度 auto 内容自适应。
      2026-10-04 歌词固定带工单：会话内歌词要与词面同屏，deck 再压一轮——padding/gap/CD 全收，
-     歌名移动端单行截断 */
-  .aside > .deck{order:3;flex:none;align-self:stretch;width:auto;margin:0 16px calc(10px + env(safe-area-inset-bottom,0px));border-radius:22px;height:auto;padding:10px 14px 8px;gap:8px}
+     歌名移动端单行截断。2026-10-11 用户反馈：词卡（歌词区）与播放卡贴死，顶边距留隙（与底边距同拍 10px） */
+  .aside > .deck{order:3;flex:none;align-self:stretch;width:auto;margin:10px 16px calc(10px + env(safe-area-inset-bottom,0px));border-radius:22px;height:auto;padding:10px 14px 8px;gap:8px}
   /* 高 auto 下 .deck-cd 的 height:100% 失去参照（塌陷/被原尺寸撑爆），给固定大小，宽由 aspect-ratio:1 推出 */
   .deck-cd{height:56px}
   /* 二轮减行（2026-10-04 用户定调：四行字太多）：片段徽章移动端去掉；信息列收成
