@@ -1,5 +1,5 @@
-import { DATA, ensureDetail } from './bank.js?v=staging-a241178';
-import { esc } from './util.js?v=staging-a241178';
+import { DATA, ensureDetail } from './bank.js?v=staging-dc2ee67';
+import { esc } from './util.js?v=staging-dc2ee67';
 
 export const lyr = new Map();
 

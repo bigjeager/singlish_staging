@@ -1,10 +1,10 @@
-import { DATA } from './bank.js?v=staging-a241178';
-import { esc } from './util.js?v=staging-a241178';
+import { DATA } from './bank.js?v=staging-dc2ee67';
+import { esc } from './util.js?v=staging-dc2ee67';
 
 let glossTimer = 0;
 
 export function showGloss(el, ms) {
-  if (document.body.classList.contains('stw-review')) return;
+  if (document.body.classList.contains('stw-review') && !document.body.classList.contains('stw-revealed')) return;
   const stage = el.closest('.stage'), inner = stage?.querySelector('.lyrics-in'), line = el.closest('.ln'); if (!inner || !line) return;
   const e = DATA[+stage.dataset.i];
   const x = el.dataset.x === 'main' ? { w: e.word, p: e.phonetic, m: e.meaning } : e.ex?.[+el.dataset.x]; if (!x) return;

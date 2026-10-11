@@ -145,7 +145,11 @@ body.stw-review.stw-revealed .st-mean-hint{display:none}
    避免同屏双主色）、下一词升主按钮（渐变）；重播本词片段，播完自动前进 */
 body.stw-revealed #rvKnow{background:var(--glass);color:var(--muted);border-color:var(--stroke);box-shadow:none;opacity:1;pointer-events:none}
 body.stw-revealed #rvNext{background:var(--grad) border-box;color:#1A0C14;border-color:transparent;box-shadow:0 6px 18px rgba(255,77,141,.35)}
+/* 剧透窗口=答题前（clip 播放到 quiz 弹出），gloss 全程隐没；揭示态（2026-10-11 用户反馈：答完题
+   歌词高亮词的解释没回来）随 .st-mean 一并放行——词卡已亮释义，气泡再藏着就是两处口径分叉；
+   前进 go() 清 stw-revealed，下一词答题前气泡重新隐没 */
 body.stw-review .gloss{display:none}
+body.stw-review.stw-revealed .gloss{display:inline-flex}
 /* W5（2026-09-30 工单 P0，N1）：复习态隐藏 [分享]。理由：复习态宣称「隐藏释义」，而 [分享] 会把
    释义直接印到分享图上——一个按钮击穿整条防泄露契约。与 .st-mean 同一套 body.stw-review 前缀机制
    （机制一致性即收益）。[☆ 收藏]（.st-share.st-fav）不显示释义，保留可用。 */
